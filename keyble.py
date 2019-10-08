@@ -3,6 +3,9 @@
 # 2019 Alexander 'lynxis' Couzens <lynxis@fe80.eu>
 # GPLv3
 
+from Crypto.Cipher import AES
+import hashlib
+
 from bluepy.btle import Scanner, DefaultDelegate, Peripheral
 
 def filter_keyble(devices):
@@ -94,6 +97,18 @@ def decode_fragements(pdus):
             undecoded_pdus = []
 
     return (messages, undecoded_pdus)
+
+def encrypt(key, data):
+    """ decrypt data with key using aes 128 ecb """
+    mode = AES.MODE_ECB
+    encryptor = AES.new(key, mode)
+    return encryptor.encrypt(text)
+
+def decrypt(key, data):
+    """ decrypt data with key using aes 128 ecb """
+    mode = AES.MODE_ECB
+    encryptor = AES.new(key, mode)
+    return encryptor.decrypt(data)
 
 MESSAGE_FRAGMENT_ACK = 0x01
 MESSAGE_ANSWER_WITHOUT_SECURITY = 0x01
