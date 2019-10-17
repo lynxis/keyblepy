@@ -5,6 +5,7 @@
 
 from Crypto.Cipher import AES
 import hashlib
+import argparse
 
 from bluepy.btle import Scanner, DefaultDelegate, Peripheral
 
@@ -149,4 +150,12 @@ class Keyble():
         "action",
         ]
 
-ui_scan()
+def main():
+    parser = argparse.ArgumentParser(description='keybtle')
+    parser.add_argument('--scan', dest='scan', action='store_true', help='Scan the BLE')
+    args = parser.parse_args()
+    if args.scan:
+        ui_scan()
+
+if __name__ == '__main__':
+    main()
