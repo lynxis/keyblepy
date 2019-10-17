@@ -34,6 +34,14 @@ def ui_scan():
     for dev in devices:
         print("{}".format(dev.addr))
 
+def ui_status(device):
+    print(device)
+    peripheral = Peripheral(device)
+    while True:
+        if Peripheral.waitForNotifications(1.0):
+            # handleNotification() was called
+            continue
+
 def encode_fragment(message):
     """ split the message into fragments.
         each Fragement contains 1 status byte and 15 payload bytes
@@ -153,9 +161,13 @@ class Keyble():
 def main():
     parser = argparse.ArgumentParser(description='keybtle')
     parser.add_argument('--scan', dest='scan', action='store_true', help='Scan the BLE')
+    parser.add_argument('--status', dest='status', action='store_true', help='')
+    parser.add_argument('--device', dest='device', help='Device mac address')
     args = parser.parse_args()
     if args.scan:
         ui_scan()
+    if args.status:
+        ui_status(args.device)
 
 if __name__ == '__main__':
     main()
