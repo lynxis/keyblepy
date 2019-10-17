@@ -99,10 +99,10 @@ def decode_fragements(pdus):
     return (messages, undecoded_pdus)
 
 def encrypt(key, data):
-    """ decrypt data with key using aes 128 ecb """
+    """ encrypt data with key using aes 128 ecb """
     mode = AES.MODE_ECB
     encryptor = AES.new(key, mode)
-    return encryptor.encrypt(text)
+    return encryptor.encrypt(data)
 
 def decrypt(key, data):
     """ decrypt data with key using aes 128 ecb """
