@@ -99,6 +99,36 @@ def decrypt(key, data):
     encryptor = AES.new(key, mode)
     return encryptor.decrypt(data)
 
+class Send():
+    def encode(self):
+        """ encode the class into a bytearray """
+        raise NotImplementedError()
+
+class Fragment():
+    """ Fragments are the basic blocks. All messages are encoded in Fragments """
+    def __init__(self, data):
+        # uint8 status
+        self.status = -1
+        self.payload = []
+        self.decode(data)
+
+    def decode(self, data):
+        self.status = data[0]
+        self.payload = data[1:]
+
+# Message Types
+class FragmentAck(Send):
+    """ send a Ack to a received fragment back """
+    msgtype = 0x00
+    def __init__(self, status):
+        # uint8
+        if status > 255:
+            raise InvalidData("status does not fit into a byte")
+        self.status = status
+
+    def encode(self):
+        return unpack('BB', FragmentAck.msgtype, self.status)
+
 class Connection_Info_Message():
     pass
 
@@ -108,3 +138,7 @@ class ConnectionRequestMessage():
         self.user_id = user_id
         # uint64
         self.nounce = nounce
+
+MESSAGES = {
+        0x00: FragmentAck,
+}
