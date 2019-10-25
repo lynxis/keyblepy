@@ -5,7 +5,8 @@
 
 import argparse
 
-from bluepy.btle import Scanner, DefaultDelegate, Peripheral
+from bluepy.btle import Scanner, DefaultDelegate
+from fsm import Device
 
 def filter_keyble(devices):
     """ return only keyble locks """
@@ -32,39 +33,29 @@ def ui_scan():
     for dev in devices:
         print("{}".format(dev.addr))
 
-def ui_status(device):
-    print(device)
-    peripheral = Peripheral(device)
-    while True:
-        if Peripheral.waitForNotifications(1.0):
-            # handleNotification() was called
-            continue
-
-class Keyble():
-    def __init__(self, mac):
-        self._pnode = Peripheral(mac)
-
-    states = [
-        "ble_idle",
-        "ble_discover",
-        "ble_connected",
-        ]
-    proto_state = [
-        "idle",
-        "connected",
-        "action",
-        ]
+def ui_status(device, userid, userkey):
+    device = Device(device, userid=userid, userkey=userkey)
+    status = device.status()
+    print("device status = %s" % str(status))
 
 def main():
     parser = argparse.ArgumentParser(description='keybtle')
-    parser.add_argument('--scan', dest='scan', action='store_true', help='Scan the BLE')
-    parser.add_argument('--status', dest='status', action='store_true', help='')
-    parser.add_argument('--device', dest='device', help='Device mac address')
+    parser.add_argument('--scan', dest='scan', action='store_true', help='Scan for KeyBLEs')
+    parser.add_argument('--device', dest='device', help='Device MAC address')
+    parser.add_argument('--user-id', dest='userid', help='The user id')
+    parser.add_argument('--user-key', dest='userkey', help='The user key (a rsa key generated when registering the user)')
+    parser.add_argument('--status', dest='status', action='store_true', help='Shows the status. Require --user-id --user-key --device.')
+    parser.add_argument('--open', dest='open', action='store_true', help='Unlock and Open. Require --user-id --user-key --device.')
+    parser.add_argument('--lock', dest='lock', action='store_true', help='Lock. Require --user-id --user-key --device.')
+    parser.add_argument('--unlock', dest='unlock', action='store_true', help='Unlock. Require --user-id --user-key --device.')
+    parser.add_argument('--register', dest='register', action='store_true', help='Register a new user. Require --qrdata, optional --user-name')
+    parser.add_argument('--user-name', dest='username', help='The administrator will see this name when listing all users')
+    parser.add_argument('--qrdata', dest='qrdata', help='The QR Code as data. This contains the mac,secret,serial.')
     args = parser.parse_args()
     if args.scan:
         ui_scan()
     if args.status:
-        ui_status(args.device)
+        ui_status(args.device, args.userid, args.userkey)
 
 if __name__ == '__main__':
     main()
