@@ -3,7 +3,10 @@
 # 2019 Alexander 'lynxis' Couzens <lynxis@fe80.eu>
 # GPLv3
 
+from exceptions import InvalidData
+
 from Crypto.Cipher import AES
+from struct import pack, unpack
 
 MESSAGE_FRAGMENT_ACK = 0x01
 MESSAGE_ANSWER_WITHOUT_SECURITY = 0x01
@@ -54,7 +57,7 @@ def encode_fragment(message):
         fragments += [pdu]
     return fragments
 
-def decode_fragements(pdus):
+def decode_fragment(pdus):
     """ combines fragment into messages
         pdus = list of pdus
         returns (messages, undecoded_pdus)
