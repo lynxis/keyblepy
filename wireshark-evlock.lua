@@ -72,44 +72,6 @@ function evlock.dissector(buffer, pinfo, tree)
     subtree:add_packet_field(f_remote_nounce, buffer(3, 8), ENC_LITTLE_ENDIAN)
   end
 
---
--- local detail = type_detail[types[td_type]]
--- if types[td_type] == "COOKIE" then
---   subtree:add(f_cookie, buffer(6, 8))
--- elseif types[td_type] == "PMTUD" then
---   subtree:add(f_pmtud, buffer(6, payload_len))
--- elseif types[td_type] == "PMTUD_ACK" then
---   subtree:add(f_pmtud_ack, buffer(6, 2))
--- elseif types[td_type] == "PREPARE" then
---   local uuid_len = buffer(14, 1):uint()
---   subtree:add(f_cookie, buffer(6, 8))
---   subtree:add(f_uuid_len, buffer(14, 1))
---   subtree:add(f_uuid, buffer(15, uuid_len))
--- elseif types[td_type] == "TUNNEL" then
---   subtree:add(f_tunnel_id, buffer(6, 4))
--- elseif types[td_type] == "USAGE" then
---   subtree:add(f_usage, buffer(6, 2))
--- elseif types[td_type] == "LIMIT" then
---   --- seq no comes from RELIABLE_MESSAGE
---   subtree:add(f_seq_no, buffer(6, 2))
---   subtree:add(f_limit_type, buffer(8, 1))
---   if limit_types[buffer(8, 1):uint()] == "BANDWIDTH_DOWN" then
---     subtree:add(f_limit_bandwidth_len, buffer(9, 1))
---     --- Bandwidth should be always 4 byte long
---     --- TODO: add a warning here
---     subtree:add(f_limit_bandwidth, buffer(10, 4))
---     pinfo.cols.info = string.format("%s to %d kbps", pinfo.cols.info, buffer(10, 4):uint())
---   end
--- else
---   if payload_len > 0 then
---     subtree:add(f_payload, buffer(6, payload_len))
---   end
--- end
---
--- if buffer:len() > (6 + payload_len) then
---   subtree:add(f_padding, buffer(6 + payload_len, buffer:len() - (6 + payload_len)))
--- end
-
 end
 
 bl_table = DissectorTable.get("bluetooth.uuid")
