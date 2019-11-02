@@ -34,12 +34,6 @@ evlock.fields = { f_fragment_status, f_type, f_answer, f_userid, f_bootver, f_ap
 
 
 function evlock.dissector(buffer, pinfo, tree)
-
-  --- check if header is to small
-  if buffer:len() > 30 then
-    return
-  end
-
   local status = buffer(0, 1):uint()
   local msg_type = buffer(1, 1):uint()
   local payload_len = buffer:len() - 2
