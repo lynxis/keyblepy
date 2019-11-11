@@ -63,7 +63,7 @@ function evlock.dissector(buffer, pinfo, tree)
     subtree:add_packet_field(f_appver, buffer(13, 1), 0)
   elseif types[msg_type] == "CONNECTION_REQUEST" then
     subtree:add_packet_field(f_userid, buffer(2, 1), 0)
-    subtree:add_packet_field(f_remote_nounce, buffer(3, 8), ENC_LITTLE_ENDIAN)
+    subtree:add_packet_field(f_local_nounce, buffer(3, 8), ENC_LITTLE_ENDIAN)
   end
 
 end
