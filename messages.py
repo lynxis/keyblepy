@@ -5,7 +5,6 @@
 
 from exceptions import InvalidData
 
-from Crypto.Cipher import AES
 from struct import pack, unpack
 
 MESSAGE_FRAGMENT_ACK = 0x01
@@ -86,18 +85,6 @@ def decode_fragment(pdus):
             undecoded_pdus = []
 
     return (messages, undecoded_pdus)
-
-def encrypt(key, data):
-    """ encrypt data with key using aes 128 ecb """
-    mode = AES.MODE_ECB
-    encryptor = AES.new(key, mode)
-    return encryptor.encrypt(data)
-
-def decrypt(key, data):
-    """ decrypt data with key using aes 128 ecb """
-    mode = AES.MODE_ECB
-    encryptor = AES.new(key, mode)
-    return encryptor.decrypt(data)
 
 class Send():
     def encode(self):
