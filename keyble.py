@@ -33,6 +33,10 @@ def ui_scan():
     for dev in devices:
         print("{}".format(dev.addr))
 
+def ui_discover(device):
+    device = Device(device)
+    device.discover()
+
 def ui_status(device, userid, userkey):
     device = Device(device, userid=userid, userkey=userkey)
     status = device.status()
@@ -42,6 +46,7 @@ def main():
     parser = argparse.ArgumentParser(description='keybtle')
     parser.add_argument('--scan', dest='scan', action='store_true', help='Scan for KeyBLEs')
     parser.add_argument('--device', dest='device', help='Device MAC address')
+    parser.add_argument('--discover', dest='discover', action='store_true', help='Ask the bootloader/app version')
     parser.add_argument('--user-id', dest='userid', help='The user id')
     parser.add_argument('--user-key', dest='userkey', help='The user key (a rsa key generated when registering the user)')
     parser.add_argument('--status', dest='status', action='store_true', help='Shows the status. Require --user-id --user-key --device.')
@@ -56,6 +61,8 @@ def main():
         ui_scan()
     if args.status:
         ui_status(args.device, args.userid, args.userkey)
+    if args.discover:
+        ui_discover(args.device)
 
 if __name__ == '__main__':
     main()
