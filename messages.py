@@ -120,11 +120,11 @@ class Connection_Info_Message():
     pass
 
 class ConnectionRequestMessage():
-    def __init__(self, user_id, nounce):
+    def __init__(self, user_id, nonce):
         # uint8
         self.user_id = user_id
         # uint64
-        self.nounce = nounce
+        self.nonce = nonce
 
 MESSAGES = {
         0x00: FragmentAck,
