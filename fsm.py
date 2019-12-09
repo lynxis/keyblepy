@@ -107,6 +107,7 @@ class Device(object):
         pass
 
     def on_enter_exchanged_nonce(self):
+        LOG.info("Exchanged nonce reached")
         self.ready.set()
 
     def on_enter_secured(self):
