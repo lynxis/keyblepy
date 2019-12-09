@@ -58,7 +58,7 @@ class Device(object):
                                       initial='disconnected')
 
         self.nonce = int(random.getrandbits(64))
-        self.nonce_byte = bytearray(pack('<L', self.nonce))
+        self.nonce_byte = bytearray(pack('<Q', self.nonce))
 
         self.remote_nonce = None
         self.remote_nonce_byte = None
@@ -87,7 +87,7 @@ class Device(object):
     def on_enter_connected(self):
         # if userid given, go to the next state
         if self.userid:
-            self.ll.send(ConnectionRequestMessage(self.userid, self.nonce_byte))
+            self.ll.send(ConnectionRequestMessage(self.userid, self.nonce))
             self.ev_authenticate()
 
     def on_enter_authenticate(self):
