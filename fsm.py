@@ -79,6 +79,7 @@ class Device(object):
         """ entrypoint when received a message from the lower layer """
         LOG.info("Receive message %s", message)
         if isinstance(message, ConnectionInfoMessage):
+            LOG.info("Receive ConnectionInfoMessage")
             self.remote_nonce = message.remote_session_nonce
             self.remote_nonce_byte = bytearray(pack('<Q', self.remote_nonce))
             self.ev_nonce_received()
