@@ -91,41 +91,154 @@ class Send():
         """ encode the class into a bytearray """
         raise NotImplementedError()
 
+class Recv():
+    @classmethod
+    def decode(cls, data):
+        """ decode the data into a class """
+        raise NotImplementedError()
+
 class Fragment():
     """ Fragments are the basic blocks. All messages are encoded in Fragments """
-    def __init__(self, data):
+    def __init__(self, status, payload):
         # uint8 status
-        self.status = -1
-        self.payload = []
-        self.decode(data)
+        self.status = status
+        self.payload = payload
 
-    def decode(self, data):
-        self.status = data[0]
-        self.payload = data[1:]
+    @classmethod
+    def decode(cls, data):
+        return cls(data[0], data[1:])
 
 # Message Types
-class FragmentAck(Send):
+class FragmentAck(Send, Recv):
     """ send a Ack to a received fragment back """
     msgtype = 0x00
-    def __init__(self, status):
+    def __init__(self, fragmentid):
         # uint8
-        if status > 255:
-            raise InvalidData("status does not fit into a byte")
-        self.status = status
+        if fragmentid > 255:
+            raise InvalidData("fragmentid does not fit into a byte")
+        self.fragmentid = fragmentid
 
     def encode(self):
-        return unpack('BB', FragmentAck.msgtype, self.status)
+        return pack('<BB', FragmentAck.msgtype, self.fragmentid)
 
-class Connection_Info_Message():
-    pass
+    @classmethod
+    def decode(cls, data):
+        if data[0] != FragmentAck.msgtype:
+            raise InvalidData("Wrong msgtype")
 
-class ConnectionRequestMessage():
-    def __init__(self, user_id, nonce):
+        _msgtype, fragmentid = unpack('<BB', data)
+        return cls(fragmentid)
+
+class ConnectionInfoMessage(Send, Recv):
+    msgtype = 0x03
+    def __init__(self, userid, remote_session_nonce, bootloader, application):
+        self.userid = userid
+        self.remote_session_nonce = remote_session_nonce
+        self.bootloader = bootloader
+        self.application = application
+
+    def encode(self):
+        return pack(
+            '<BBQBB',
+            ConnectionInfoMessage.msgtype,
+            self.userid,
+            self.remote_session_nonce,
+            self.bootloader,
+            self.application)
+
+    @classmethod
+    def decode(cls, data):
+        if len(data) != 15:
+            raise InvalidData("Input to short")
+
+        if data[0] != ConnectionInfoMessage.msgtype:
+            raise InvalidData("Wrong msgtype")
+
+        _msgtype, userid, remote_session_nonce, bootloader, application = unpack('<BBQBB', data)
+        return cls(userid, remote_session_nonce, bootloader, application)
+
+class ConnectionRequestMessage(Send):
+    msgtype = 0x02
+    def __init__(self, userid, nonce):
         # uint8
-        self.user_id = user_id
+        self.userid = userid
         # uint64
         self.nonce = nonce
 
+    def encode(self):
+        return pack(
+            '<BBQ',
+            ConnectionRequestMessage.msgtype,
+            self.userid,
+            self.nonce)
+
+    @classmethod
+    def decode(cls, data):
+        if len(data) != 15:
+            raise InvalidData("Input to short")
+
+        if data[0] != cls.msgtype:
+            raise InvalidData("Wrong msgtype")
+
+        _msgtype, userid, nonce = unpack('<BBQBB', data)
+        return cls(userid, nonce)
+
+class StatusRequestMessage(Send):
+    msgtype = 0x82
+    def __init__(self, userid, nonce):
+        # uint8
+        self.userid = userid
+        # uint64
+        self.nonce = nonce
+
+    def encode(self):
+        return pack(
+            '<BBQ',
+            StatusRequestMessage.msgtype,
+            self.userid,
+            self.nonce)
+
+    @classmethod
+    def decode(cls, data):
+        if len(data) != 15:
+            raise InvalidData("Input to short")
+
+        if data[0] != cls.msgtype:
+            raise InvalidData("Wrong msgtype")
+
+        _msgtype, userid, nonce = unpack('<BBQBB', data)
+        return cls(userid, nonce)
+
+class StatusInfoMessage(Send):
+    msgtype = 0x83
+    def __init__(self, userid, nonce):
+        # uint8
+        self.userid = userid
+        # uint64
+        self.nonce = nonce
+
+    def encode(self):
+        return pack(
+            '<BBQ',
+            StatusInfoMessage.msgtype,
+            self.userid,
+            self.nonce)
+
+class StatusChangedMessage(Send):
+    msgtype = 0x05
+    def __init__(self, userid, nonce):
+        pass
+
+    def encode(self):
+        return pack(
+            '<B',
+            StatusChangedMessage.msgtype)
+
 MESSAGES = {
         0x00: FragmentAck,
+        0x02: ConnectionRequestMessage,
+        0x03: ConnectionInfoMessage,
+        0x05: StatusChangedMessage,
+        0x82: StatusRequestMessage,
+        0x83: StatusInfoMessage,
 }
