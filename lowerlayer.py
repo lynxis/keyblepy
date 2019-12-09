@@ -230,7 +230,7 @@ class LowerLayer(object):
             if self.state == "connected" and not self._send_messages.empty():
                 message = self._send_messages.get()
 
-            self._ble_node.waitForNotifications(self, self.timeout)
+            self._ble_node.waitForNotifications(self.timeout)
 
     def set_on_receive(self, callback):
         """ sets the callback when a message has been received.
