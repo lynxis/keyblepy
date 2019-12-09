@@ -176,13 +176,13 @@ class LowerLayer(object):
         # TODO: set timeout
         if not self._send_fragments:
             if not self._send_messages.empty():
-                self.send_fragments = encode_fragment(self._send_messages.get().encode())
+                self._send_fragments = encode_fragment(self._send_messages.get().encode())
                 self._send_fragment_index = -1
 
         self._send_fragment_index += 1
         self._send_fragment_try = 1
-        self._send_pdu(self.send_fragments[self._send_fragment_index])
-        if len(self.send_fragments) >= self._send_fragment_index + 1:
+        self._send_pdu(self._send_fragments[self._send_fragment_index])
+        if len(self._send_fragments) >= self._send_fragment_index + 1:
             # last message
             self.ev_finished()
         else:
@@ -192,7 +192,7 @@ class LowerLayer(object):
     def on_timeout_wait_ack(self):
         # resend
         if self._send_fragment_try <= 3:
-            self._send_pdu(self.send_fragments[self._send_fragment_index])
+            self._send_pdu(self._send_fragments[self._send_fragment_index])
         else:
             self._error("Lock is not sending FragmentAcks!")
             self.ev_error()
@@ -200,7 +200,7 @@ class LowerLayer(object):
     def on_timeout_wait_answer(self):
         """ when waiting for an answer, we might even have to re-send the last fragment """
         if self._send_fragment_try <= 3:
-            self._send_pdu(self.send_fragments[self._send_fragment_index])
+            self._send_pdu(self._send_fragments[self._send_fragment_index])
 
     def on_enter_wait_answer(self):
         self._recv_fragment_index = 0
