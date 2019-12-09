@@ -27,7 +27,7 @@ def encode_fragment(message):
     """
     fragments = []
 
-    count = len(message) / 15
+    count = int(len(message) / 15)
     if len(message) % 15:
         count += 1
 
