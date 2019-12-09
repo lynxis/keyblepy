@@ -134,6 +134,7 @@ class Device(object):
 
         self._connect()
         self.ready.wait()
+        LOG.info("Discover is over")
 
     def status(self):
         """ returns the status of the lock or raise an exception """
