@@ -186,12 +186,13 @@ class LowerLayer(object):
             message_cls = MESSAGES[message_type]
             message = message_cls.decode(message)
             LOG.info("Received decoded message %s", message)
-            if self._recv_cb:
-                self._recv_cb(message)
         except Exception as exp:
             LOG.info("Receive exception %s", exp)
             if self.ignore_invalid:
                 return
+
+        if self._recv_cb:
+            self._recv_cb(message)
 
     def _send_pdu(self, pdu):
         """ send a pdu (a byte array) """

@@ -17,6 +17,8 @@ LOCK_SERVICE = '58e06900-15d8-11e6-b737-0002a5d5c51b'
 LOCK_SEND_CHAR = '3141dd40-15db-11e6-a24b-0002a5d5c51b'
 LOCK_RECV_CHAR = '359d4820-15db-11e6-82bd-0002a5d5c51b'
 
+LOG = logging.getLogger("fsm")
+
 @add_state_features(Timeout)
 class TimeoutMachine(Machine):
     pass
