@@ -124,7 +124,6 @@ class LowerLayer(object):
 
         self._running = True
         self._thread = threading.Thread(target=self.work, name="lowerlayer")
-        self._thread.start()
 
     def handleNotification(self, handle, data):
         """ called by the ble stack """
@@ -180,6 +179,8 @@ class LowerLayer(object):
             self._error_cb(error)
 
     def on_enter_connected(self):
+        if not self._thread.is_alive():
+            self._thread.start()
         if not self._send_messages.empty():
             # move it to the next state if we already got an enqueued message
             self.ev_enqueue_message()
@@ -246,9 +247,7 @@ class LowerLayer(object):
     def work(self):
         """ must be called to work on the ble queue """
         while self._running:
-            LOG.debug("Work started")
-            message = None
-
+            LOG.info("Work")
             if self.state != "disconnected":
                 self._ble_node.waitForNotifications(self.timeout)
 
