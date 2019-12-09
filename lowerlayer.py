@@ -176,7 +176,7 @@ class LowerLayer(object):
         # TODO: set timeout
         if not self._send_fragments:
             if not self._send_messages.empty():
-                self.send_fragments = encode_fragment(self._send_messages.get())
+                self.send_fragments = encode_fragment(self._send_messages.get().encode())
                 self._send_fragment_index = -1
 
         self._send_fragment_index += 1
