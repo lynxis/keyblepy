@@ -75,6 +75,11 @@ class LowerLayer(object):
             'dest': 'wait_answer'
         },
         {
+            'trigger': 'ev_received', # when everything was sent and received in queue
+            'source': 'wait_answer',
+            'dest': 'connected'
+        },
+        {
             'trigger': 'ev_nothing_to_send', # when reaching state send, but nothing to send
             'source': 'send',
             'dest': 'connected'
