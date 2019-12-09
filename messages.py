@@ -52,7 +52,7 @@ def encode_fragment(message):
 
         # padding
         if len(pdu) < 16:
-            pdu.extend((len(pdu) % 16) * 0x0)
+            pdu.extend((len(pdu) % 16) * b'\x00')
 
         fragments += [pdu]
     return fragments
