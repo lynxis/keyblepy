@@ -69,8 +69,11 @@ class Device(object):
         self.userid = userid
         self.userkey = userkey
 
+        self.cv = threading.Condition(lock=threading.Lock)
+        self.cv_finish = False
+
     def _connect(self):
-        if self.state != 'disconnected' or self.state == 'error':
+        if self.state != 'disconnected':
             return
 
         self.ll = LowerLayer(self.mac)
@@ -107,12 +110,20 @@ class Device(object):
         self._connect()
         self._exchanged_nonce()
 
+    def on_discover_received(self, message):
+        print(message)
+        self.cv_finish = True
+        self.cv.notify()
+
     def discover(self):
         if self.userid is None:
             raise RuntimeError("Missing user id!")
 
         self._connect()
-        self.ll.send(ConnectionRequestMessage(self.userid, self.nonce))
+        self.ll.set_on_receive(self.on_discover_received)
+        self.ll.send(ConnectionRequestMessage(self.userid, self.nonce_byte))
+        with self.cv:
+            self.cv.wait_for(self.cv_finish)
 
     def status(self):
         """ returns the status of the lock or raise an exception """
