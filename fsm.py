@@ -92,6 +92,7 @@ class Device(object):
 
     def on_enter_connected(self):
         # if userid given, go to the next state
+        LOG.info("Connected")
         if self.userid:
             self.ll.send(ConnectionRequestMessage(self.userid, self.nonce))
 

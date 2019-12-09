@@ -174,15 +174,18 @@ class LowerLayer(object):
 
         # try to decode message
         message_type = message[0]
+        LOG.info("Received message type 0x%x", message_type)
         try:
             if not message_type in MESSAGES:
                 self._error("Can not find Message")
                 return
             message_cls = MESSAGE[message_type]
             message = message_cls.decode(message)
+            LOG.info("Received decoded message %s", message)
             if self._recv_cb:
                 self._recv_cb(message)
         except:
+            LOG.info("Receive exception")
             if self.ignore_invalid:
                 return
 
