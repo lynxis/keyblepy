@@ -83,6 +83,9 @@ class Device(object):
             self.remote_nonce = message.remote_session_nonce
             self.remote_nonce_byte = bytearray(pack('<Q', self.remote_nonce))
             self.ev_nonce_received()
+        else:
+            LOG.info("Unknown message %s", message)
+
 
     def _connect(self):
         if self.state != 'disconnected':
