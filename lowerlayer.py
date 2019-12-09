@@ -100,6 +100,7 @@ class LowerLayer(object):
         # ble
         self._mac = mac
         self._ble_node = Peripheral()
+        self._ble_node.setDelegate(self)
         # the ble service
         self._ble_service = None
         # the ble characteristic on the self._service
@@ -125,7 +126,7 @@ class LowerLayer(object):
         self._thread = threading.Thread(target=self.work, name="lowerlayer")
         self._thread.start()
 
-    def _ble_notify(self, handle, data):
+    def handleNotification(self, handle, data):
         """ called by the ble stack """
 
         LOG.info("Received on %x data : %s", handle, data)
