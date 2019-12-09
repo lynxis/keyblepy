@@ -168,7 +168,10 @@ class LowerLayer(object):
         """ send a pdu (a byte array) """
         if not self._ble_send:
             raise RuntimeError("Can not send a message without a Connection")
-        return self._ble_send.write(pdu)
+        from trepan.api import debug
+        debug()
+
+        return self._ble_send.write(pdu, True)
 
     def _error(self, error):
         if self._error_cb:
