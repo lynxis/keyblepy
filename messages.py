@@ -46,8 +46,8 @@ def encode_fragment(message):
         pdu.append(status)
 
         # payload
-        start = count * 16
-        end = (count + 1) * 16
+        start = i * 16
+        end = (i + 1) * 16
         debug()
         pdu.append(message[start:end])
 
