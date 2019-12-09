@@ -3,6 +3,7 @@
 # 2019 Alexander 'lynxis' Couzens <lynxis@fe80.eu>
 # GPLv3
 
+import logging
 import threading
 from exceptions import *
 from messages import *

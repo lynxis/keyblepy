@@ -6,6 +6,7 @@
 # Create a Thread as lower layer to communicate with the BLE
 # Communicate with Queues
 
+import logging
 import threading
 import time
 from queue import Queue
@@ -15,6 +16,8 @@ from transitions.extensions.states import add_state_features, Timeout
 
 from exceptions import *
 from messages import *
+
+LOG = logging.getLogger("lowerlayer")
 
 LOCK_SERVICE = '58e06900-15d8-11e6-b737-0002a5d5c51b'
 LOCK_SEND_CHAR = '3141dd40-15db-11e6-a24b-0002a5d5c51b'
