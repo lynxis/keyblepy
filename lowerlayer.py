@@ -224,6 +224,7 @@ class LowerLayer(object):
     def connect(self):
         """ will raise BLE Exceptions """
         self._ble_node.connect(self._mac)
+        self._ble_node.getServices()
         self._ble_service = self._ble_node.getServiceByUUID(LOCK_SERVICE)
         self._ble_send = self._ble_service.getCharacteristics(LOCK_SEND_CHAR)
         self._ble_recv = self._ble_service.getCharacteristics(LOCK_RECV_CHAR)
