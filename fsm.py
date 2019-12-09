@@ -37,7 +37,7 @@ class Device(object):
             'dest': 'connected',
         },
         {
-            'trigger': 'ev_nonce_exchanged',
+            'trigger': 'ev_nonce_received',
             'source': 'connected',
             'dest': 'exchanged_nonce',
         },
@@ -70,26 +70,29 @@ class Device(object):
         self.userid = userid
         self.userkey = userkey
 
-        self.cv = threading.Condition(lock=threading.Lock())
-        self.cv_finish = False
+        self.connected = threading.Condition(lock=threading.Lock())
+        self.connected_finish = False
+
+    def _on_receive(self, message):
+        """ entrypoint when received a message from the lower layer """
+        if isinstance(message, ConnectionInfoMessage):
+            self.remote_nonce = message.remote_session_nonce
+            self.remote_nonce_byte = bytearray(pack('<Q', self.remote_nonce))
+            self.ev_nonce_received()
 
     def _connect(self):
         if self.state != 'disconnected':
             return
 
         self.ll = LowerLayer(self.mac)
+        self.ll.set_on_receive(self._on_receive)
         self.ll.connect()
         self.ev_connected()
-
-    def _exchanged_nonce(self):
-        if self.state == 'exchanged_nonce':
-            return
 
     def on_enter_connected(self):
         # if userid given, go to the next state
         if self.userid:
             self.ll.send(ConnectionRequestMessage(self.userid, self.nonce))
-            self.ev_authenticate()
 
     def on_enter_authenticate(self):
         # self.ll.send(Authenticate(self.userid, self.nonce))
@@ -109,20 +112,15 @@ class Device(object):
             a user_id must be also given via the device class.
             """
         self._connect()
-        self._exchanged_nonce()
 
     def on_discover_received(self, message):
         print(message)
-        self.cv_finish = True
-        self.cv.notify()
 
     def discover(self):
         if self.userid is None:
             raise RuntimeError("Missing user id!")
 
         self._connect()
-        self.ll.set_on_receive(self.on_discover_received)
-        self.ll.send(ConnectionRequestMessage(self.userid, self.nonce_byte))
         with self.cv:
             self.cv.wait_for(self.cv_finish)
 
