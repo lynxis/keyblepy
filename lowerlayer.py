@@ -226,8 +226,8 @@ class LowerLayer(object):
         self._ble_node.connect(self._mac)
         self._ble_node.getServices()
         self._ble_service = self._ble_node.getServiceByUUID(LOCK_SERVICE)
-        self._ble_send = self._ble_service.getCharacteristics(LOCK_SEND_CHAR)
-        self._ble_recv = self._ble_service.getCharacteristics(LOCK_RECV_CHAR)
+        self._ble_send = self._ble_service.getCharacteristics(LOCK_SEND_CHAR)[0]
+        self._ble_recv = self._ble_service.getCharacteristics(LOCK_RECV_CHAR)[0]
         self.ev_connected()
 
     def send(self, message):
