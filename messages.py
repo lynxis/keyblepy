@@ -6,6 +6,7 @@
 from exceptions import InvalidData
 
 from struct import pack, unpack
+from trepan.api import debug
 
 MESSAGE_FRAGMENT_ACK = 0x01
 MESSAGE_ANSWER_WITHOUT_SECURITY = 0x01
@@ -47,6 +48,7 @@ def encode_fragment(message):
         # payload
         start = count * 16
         end = (count + 1) * 16
+        debug()
         pdu.append(message[start:end])
 
         # padding
