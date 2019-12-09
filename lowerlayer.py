@@ -34,6 +34,10 @@ LOCK_RECV_CHAR = '359d4820-15db-11e6-82bd-0002a5d5c51b'
 # |- 0xff06 -> 4747fca015db11e69dd60002a5d5c51b (chr, ACL read)
 #  |- 0xff07 -> value (software version)
 
+MSG_CONNECT = 0
+MSG_DISCONNECT = 1
+MSG_SEND = 2
+
 @add_state_features(Timeout)
 class TimeoutMachine(Machine):
     pass
@@ -46,6 +50,7 @@ class LowerLayer(object):
         {'name': 'wait_ack', 'on_enter': 'on_enter_wait_ack', 'timeout': 5.0, 'on_timeout': 'on_timeout_wait_ack'},
         {'name': 'wait_answer', 'on_enter': 'on_enter_wait_answer', 'timeout': 5.0, 'on_timeout': 'on_timeout_wait_answer'},
         {'name': 'error', 'on_enter': 'on_enter_error'}, # error state without any further operation
+        {'name': 'disconnect'}, # error state without any further operation
     ]
 
     transitions = [
@@ -85,6 +90,11 @@ class LowerLayer(object):
             'dest': 'connected'
         },
         {
+            'trigger': 'ev_disconnect',
+            'source': '*',
+            'dest': 'disconnect'
+        },
+        {
             'trigger': 'ev_error',
             'source': '*',
             'dest': 'error'
@@ -121,6 +131,7 @@ class LowerLayer(object):
         self._send_fragment_try = 1
 
         self._send_messages = Queue()
+        self._control = Queue()
 
         # The receive callback of the user
         self._recv_cb = None
@@ -186,16 +197,13 @@ class LowerLayer(object):
             self._error_cb(error)
 
     def on_enter_connected(self):
-        if not self._thread.is_alive():
-            self._thread.start()
-        if not self._send_messages.empty():
-            # move it to the next state if we already got an enqueued message
-            self.ev_enqueue_message()
-
         # reset send fragments
         self._send_fragments = []
         self._send_fragment_index = 0
         self._send_fragment_try = 1
+
+        if not self._thread.is_alive():
+            self._thread.start()
 
     def on_enter_send(self):
         """ send the next fragment """
@@ -239,9 +247,7 @@ class LowerLayer(object):
         self._recv_fragment_index = 0
         self._recv_fragment_try = 1
 
-    # user api functions
-    def connect(self):
-        """ will raise BLE Exceptions """
+    def _connect(self):
         self._ble_node.connect(self._mac)
         self._ble_node.getServices()
         self._ble_service = self._ble_node.getServiceByUUID(LOCK_SERVICE)
@@ -249,20 +255,28 @@ class LowerLayer(object):
         self._ble_recv = self._ble_service.getCharacteristics(LOCK_RECV_CHAR)[0]
         self.ev_connected()
 
-    def send(self, message):
-        """ send messages. "Big" (> 31byte) messages must be splitted into multiple fragments """
-        self._send_messages.put(message)
-        self.ev_enqueue_message()
-
-    def recv(self, timeout):
-        pass
-
     def work(self):
-        """ must be called to work on the ble queue """
+        """ runs in a seperate thread """
         while self._running:
-            LOG.info("Work")
+            if not self._control.empty():
+                control, payload = self._control.get()
+                if control == MSG_CONNECT:
+                    self._connect()
+                elif control == MSG_DISCONNECT:
+                    self.ev_disconnect()
+                elif control == MSG_SEND:
+                    self._send_messages.put(payload)
+                    self.ev_enqueue_message()
             if self.state != "disconnected":
                 self._ble_node.waitForNotifications(self.timeout)
+
+    # user api functions
+    def connect(self):
+        self._control.put((MSG_CONNECT, None))
+
+    def send(self, message):
+        """ send messages. "Big" (> 31byte) messages must be splitted into multiple fragments """
+        self._control.put((MSG_SEND, message))
 
     def set_on_receive(self, callback):
         """ sets the callback when a message has been received.
