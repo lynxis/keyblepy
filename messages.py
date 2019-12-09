@@ -84,7 +84,7 @@ def decode_fragment(pdus):
             if length != pdu[0] & 0x7f:
                 raise RuntimeError("Message out of sequence received")
 
-        message.append(pdu[1:])
+        message.extend(pdu[1:])
         if length == 0:
             messages += [message]
             message = bytearray()
@@ -93,9 +93,12 @@ def decode_fragment(pdus):
     return (messages, undecoded_pdus)
 
 def test_decode_fragment():
-    pdu = b'\x80\x03\x011\x0c\xe1{&\x1f\x82\x17\x00\x10\x17\x00\x00'
+    pdu = bytearray(b'\x80\x03\x011\x0c\xe1{&\x1f\x82\x17\x00\x10\x17\x00\x00')
     pdus = [pdu]
-    result = decode_fragment(pdus)
+    messages, remain = decode_fragment(pdus)
+    assert(messages)
+    assert(not remain)
+    assert(messages[0] == pdu[1:])
 
 class Send():
     def encode(self):
