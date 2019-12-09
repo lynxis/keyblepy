@@ -3,7 +3,12 @@
 # 2019 Alexander 'lynxis' Couzens <lynxis@fe80.eu>
 # GPLv3
 
-from queue import Qeueue
+# Create a Thread as lower layer to communicate with the BLE
+# Communicate with Queues
+
+import threading
+import time
+from queue import Queue
 from bluepy.btle import Peripheral
 from transitions import Machine
 from transitions.extensions.states import add_state_features, Timeout
@@ -36,6 +41,7 @@ class LowerLayer(object):
         {'name': 'connected', 'on_enter': 'on_enter_connected'}, # connected on BLE level
         {'name': 'send', 'on_enter': 'on_enter_send'}, # send a pdu
         {'name': 'wait_ack', 'on_enter': 'on_enter_wait_ack', 'timeout': 5, 'on_timeout': 'on_timeout_wait_ack'},
+        {'name': 'wait_answer', 'on_enter': 'on_enter_wait_answer', 'timeout': 5, 'on_timeout': 'on_timeout_wait_answer'},
         {'name': 'error', 'on_enter': 'on_enter_error'}, # error state without any further operation
     ]
 
@@ -63,7 +69,7 @@ class LowerLayer(object):
         {
             'trigger': 'ev_finished', # when a fragmented message has been send
             'source': 'send',
-            'dest': 'connected'
+            'dest': 'wait_answer'
         },
         {
             'trigger': 'ev_error',
@@ -73,11 +79,13 @@ class LowerLayer(object):
     ]
 
     def __init__(self, mac):
+        self.state = None
         self.machine = TimeoutMachine(self,
                                       states=LowerLayer.states,
                                       transitions=LowerLayer.transitions,
                                       initial='disconnected')
 
+        self.timeout = 1
         # should it raise Exception on invalid data?
         self.ignore_invalid = False
 
@@ -91,14 +99,23 @@ class LowerLayer(object):
         self._ble_send = None
 
         self._recv_fragments = []
+        self._recv_fragment_index = 0
+        self._recv_fragment_try = 1
+
         self._send_fragments = []
         self._send_fragment_index = 0
-        self._send_messages = []
+        self._send_fragment_try = 1
+
+        self._send_messages = Queue()
 
         # The receive callback of the user
         self._recv_cb = None
         # The error callback of the user
         self._error_cb = None
+
+        self._running = True
+        self._thread = threading.Thread(target=self.work, name="lowerlayer")
+        self._thread.start()
 
     def _ble_notify(self, handle, data):
         """ called by the ble stack """
@@ -111,7 +128,7 @@ class LowerLayer(object):
 
         # TODO: split between Fragment/FragmentAck. Are there more messages to receive here?
         try:
-            fragment = Fragment(data)
+            fragment = Fragment.decode(data)
         except InvalidData:
             if self.ignore_invalid:
                 return
@@ -132,7 +149,7 @@ class LowerLayer(object):
                 self._error("Can not find Message")
                 return
             message_cls = MESSAGE[message_type]
-            message = message_cls(message)
+            message = message_cls.decode(message)
             if self._recv_cb:
                 self._recv_cb(message)
         except:
@@ -150,7 +167,7 @@ class LowerLayer(object):
             self._error_cb(error)
 
     def on_enter_connected(self):
-        if self._send_messages:
+        if not self._send_messages.empty():
             # move it to the next state if we already got an enqueued message
             self.ev_enqueue_message()
 
@@ -158,8 +175,8 @@ class LowerLayer(object):
         """ send the next fragment """
         # TODO: set timeout
         if not self._send_fragments:
-            if self._send_messages:
-                self.send_fragments = encode_fragment(self._send_messages.pop(0))
+            if not self._send_messages.empty():
+                self.send_fragments = encode_fragment(self._send_messages.get())
                 self._send_fragment_index = -1
 
         self._send_fragment_index += 1
@@ -174,11 +191,20 @@ class LowerLayer(object):
 
     def on_timeout_wait_ack(self):
         # resend
-        if self._send_fragment_try < 3:
+        if self._send_fragment_try <= 3:
             self._send_pdu(self.send_fragments[self._send_fragment_index])
         else:
             self._error("Lock is not sending FragmentAcks!")
             self.ev_error()
+
+    def on_timeout_wait_answer(self):
+        """ when waiting for an answer, we might even have to re-send the last fragment """
+        if self._send_fragment_try <= 3:
+            self._send_pdu(self.send_fragments[self._send_fragment_index])
+
+    def on_enter_wait_answer(self):
+        self._recv_fragment_index = 0
+        self._recv_fragment_try = 1
 
     # user api functions
     def connect(self):
@@ -191,22 +217,20 @@ class LowerLayer(object):
 
     def send(self, message):
         """ send messages. "Big" (> 31byte) messages must be splitted into multiple fragments """
-        if self.state == 'error':
-            raise RuntimeError("Lock is in Error State")
-        self._send_messages += [message]
+        self._send_messages.put(message)
         self.ev_enqueue_message()
 
     def recv(self, timeout):
-        pass 
+        pass
 
-    def work(self, timeout=None):
+    def work(self):
         """ must be called to work on the ble queue """
-        if self.state == 'error':
-            raise RuntimeError("Lock is in Error State")
-        if self.state == 'disconnected':
-            return
+        while self._running:
+            message = None
+            if self.state == "connected" and not self._send_messages.empty():
+                message = self._send_messages.get()
 
-        self._ble_node.waitForNotifications(self, timeout)
+            self._ble_node.waitForNotifications(self, self.timeout)
 
     def set_on_receive(self, callback):
         """ sets the callback when a message has been received.
