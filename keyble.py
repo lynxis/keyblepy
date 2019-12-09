@@ -33,7 +33,7 @@ def ui_scan():
     for dev in devices:
         print("{}".format(dev.addr))
 
-def ui_discover(device):
+def ui_discover(device, userid=1):
     device = Device(device)
     device.discover()
 
