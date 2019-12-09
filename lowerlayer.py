@@ -60,7 +60,7 @@ class LowerLayer(object):
             'dest': 'send'
         },
         {
-            'trigger': 'ev_send_message',
+            'trigger': 'ev_send_fragment',
             'source': 'send',
             'dest': 'wait_ack'
         },
@@ -70,9 +70,14 @@ class LowerLayer(object):
             'dest': 'send'
         },
         {
-            'trigger': 'ev_finished', # when a fragmented message has been send
+            'trigger': 'ev_finished', # when everything was sent and received in queue
             'source': 'send',
             'dest': 'wait_answer'
+        },
+        {
+            'trigger': 'ev_nothing_to_send', # when reaching state send, but nothing to send
+            'source': 'send',
+            'dest': 'connected'
         },
         {
             'trigger': 'ev_error',
@@ -178,9 +183,15 @@ class LowerLayer(object):
         """ send the next fragment """
         # TODO: set timeout
         if not self._send_fragments:
+            LOG.debug("OnSend: No fragment, try generating fragments")
             if not self._send_messages.empty():
                 self._send_fragments = encode_fragment(self._send_messages.get().encode())
                 self._send_fragment_index = -1
+                LOG.debug("OnSend: Encoded %d fragments", len(self._send_fragments))
+            else:
+                # No message or fragment left
+                self.ev_nothing_to_send()
+                return
 
         self._send_fragment_index += 1
         self._send_fragment_try = 1
@@ -190,7 +201,7 @@ class LowerLayer(object):
             self.ev_finished()
         else:
             # when not the last message, we're expecting an FragmentAck
-            self.ev_send_message()
+            self.ev_send_fragment()
 
     def on_timeout_wait_ack(self):
         # resend
