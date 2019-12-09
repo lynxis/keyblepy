@@ -74,6 +74,7 @@ class Device(object):
         self.userkey = userkey
 
         self.ready = threading.Event()
+        self.ready.clear()
 
     def _on_receive(self, message):
         """ entrypoint when received a message from the lower layer """
@@ -133,6 +134,7 @@ class Device(object):
             raise RuntimeError("Missing user id!")
 
         self._connect()
+        LOG.info("Waiting %s", self.ready.is_set())
         self.ready.wait()
         LOG.info("Discover is over")
 
