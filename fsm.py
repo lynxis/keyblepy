@@ -71,8 +71,8 @@ class Device(object):
         self.userid = userid
         self.userkey = userkey
 
-        self.connected = threading.Condition(lock=threading.Lock())
-        self.connected_finish = False
+        self.ready = threading.Condition(lock=threading.Lock())
+        self.ready_finish = False
 
     def _on_receive(self, message):
         """ entrypoint when received a message from the lower layer """
@@ -99,6 +99,10 @@ class Device(object):
         # self.ll.send(Authenticate(self.userid, self.nonce))
         pass
 
+    def on_enter_exchanged_nonce(self):
+        self.ready_finish = True
+        self.ready.notify()
+
     def on_enter_secured(self):
         pass
 
@@ -122,8 +126,8 @@ class Device(object):
             raise RuntimeError("Missing user id!")
 
         self._connect()
-        with self.cv:
-            self.cv.wait_for(self.cv_finish)
+        with self.ready:
+            self.ready.wait_for(self.ready_finish)
 
     def status(self):
         """ returns the status of the lock or raise an exception """
