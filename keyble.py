@@ -35,7 +35,7 @@ def ui_scan():
 
 def ui_discover(device, userid=1):
     device = Device(device)
-    device.discover()
+    device.discover(userid=userid)
 
 def ui_status(device, userid, userkey):
     device = Device(device, userid=userid, userkey=userkey)
