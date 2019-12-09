@@ -7,7 +7,6 @@ from exceptions import InvalidData
 import logging
 
 from struct import pack, unpack
-from trepan.api import debug
 
 MESSAGE_FRAGMENT_ACK = 0x01
 MESSAGE_ANSWER_WITHOUT_SECURITY = 0x01
