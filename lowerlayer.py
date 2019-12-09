@@ -41,10 +41,10 @@ class TimeoutMachine(Machine):
 class LowerLayer(object):
     states = [
         {'name': 'disconnected'}, # no state is present with the device
-        {'name': 'connected', 'on_enter': 'on_enter_connected', 'timeout': 5, 'on_timeout': 'on_enter_connected'}, # connected on BLE level
+        {'name': 'connected', 'on_enter': 'on_enter_connected', 'timeout': 5.0, 'on_timeout': 'on_enter_connected'}, # connected on BLE level
         {'name': 'send', 'on_enter': 'on_enter_send'}, # send a pdu
-        {'name': 'wait_ack', 'on_enter': 'on_enter_wait_ack', 'timeout': 5, 'on_timeout': 'on_timeout_wait_ack'},
-        {'name': 'wait_answer', 'on_enter': 'on_enter_wait_answer', 'timeout': 5, 'on_timeout': 'on_timeout_wait_answer'},
+        {'name': 'wait_ack', 'on_enter': 'on_enter_wait_ack', 'timeout': 5.0, 'on_timeout': 'on_timeout_wait_ack'},
+        {'name': 'wait_answer', 'on_enter': 'on_enter_wait_answer', 'timeout': 5.0, 'on_timeout': 'on_timeout_wait_answer'},
         {'name': 'error', 'on_enter': 'on_enter_error'}, # error state without any further operation
     ]
 
@@ -144,6 +144,8 @@ class LowerLayer(object):
                 return
             raise
 
+        self.ev_received()
+
         self._recv_fragments += [data]
         message, self._recv_fragments = decode_fragment(self._recv_fragments)
 
@@ -185,6 +187,11 @@ class LowerLayer(object):
             # move it to the next state if we already got an enqueued message
             self.ev_enqueue_message()
 
+        # reset send fragments
+        self._send_fragments = []
+        self._send_fragment_index = 0
+        self._send_fragment_try = 1
+
     def on_enter_send(self):
         """ send the next fragment """
         # TODO: set timeout
@@ -219,6 +226,7 @@ class LowerLayer(object):
 
     def on_timeout_wait_answer(self):
         """ when waiting for an answer, we might even have to re-send the last fragment """
+        LOG.error("Timeout occured in wait answer, resending last fragment")
         if self._send_fragment_try <= 3:
             self._send_pdu(self._send_fragments[self._send_fragment_index])
 
