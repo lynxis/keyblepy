@@ -48,7 +48,6 @@ def encode_fragment(message):
         # payload
         start = i * 16
         end = (i + 1) * 16
-        debug()
         pdu.append(message[start:end])
 
         # padding
