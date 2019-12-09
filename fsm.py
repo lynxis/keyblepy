@@ -70,7 +70,7 @@ class Device(object):
         self.userid = userid
         self.userkey = userkey
 
-        self.cv = threading.Condition(lock=threading.Lock)
+        self.cv = threading.Condition(lock=threading.Lock())
         self.cv_finish = False
 
     def _connect(self):
