@@ -41,7 +41,7 @@ class TimeoutMachine(Machine):
 class LowerLayer(object):
     states = [
         {'name': 'disconnected'}, # no state is present with the device
-        {'name': 'connected', 'on_enter': 'on_enter_connected'}, # connected on BLE level
+        {'name': 'connected', 'on_enter': 'on_enter_connected', 'timeout': 5, 'on_timeout': 'on_enter_connected'}, # connected on BLE level
         {'name': 'send', 'on_enter': 'on_enter_send'}, # send a pdu
         {'name': 'wait_ack', 'on_enter': 'on_enter_wait_ack', 'timeout': 5, 'on_timeout': 'on_timeout_wait_ack'},
         {'name': 'wait_answer', 'on_enter': 'on_enter_wait_answer', 'timeout': 5, 'on_timeout': 'on_timeout_wait_answer'},
@@ -246,9 +246,8 @@ class LowerLayer(object):
     def work(self):
         """ must be called to work on the ble queue """
         while self._running:
+            LOG.debug("Work started")
             message = None
-            if self.state == "connected" and not self._send_messages.empty():
-                message = self._send_messages.get()
 
             if self.state != "disconnected":
                 self._ble_node.waitForNotifications(self.timeout)
