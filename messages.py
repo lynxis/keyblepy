@@ -48,11 +48,11 @@ def encode_fragment(message):
         # payload
         start = i * 16
         end = (i + 1) * 16
-        pdu.append(message[start:end])
+        pdu.extend(message[start:end])
 
         # padding
         if len(pdu) < 16:
-            pdu.append((len(pdu) % 16) * 0x0)
+            pdu.extend((len(pdu) % 16) * 0x0)
 
         fragments += [pdu]
     return fragments
