@@ -254,6 +254,14 @@ class LowerLayer(object):
         self._recv_fragment_index = 0
         self._recv_fragment_try = 1
 
+    def on_enter_disconnect(self):
+        self._ble_node.disconnect()
+        self._ble_service = None
+        self._ble_send = None
+        self._ble_recv = None
+        del self._ble_node
+        self._ble_node = None
+
     def _connect(self):
         self._ble_node.connect(self._mac)
         self._ble_node.getServices()
@@ -271,6 +279,7 @@ class LowerLayer(object):
                     self._connect()
                 elif control == MSG_DISCONNECT:
                     self.ev_disconnect()
+                    break
                 elif control == MSG_SEND:
                     self._send_messages.put(payload)
                     self.ev_enqueue_message()
@@ -280,6 +289,9 @@ class LowerLayer(object):
                 time.sleep(0.1)
 
     # user api functions
+    def disconnect(self):
+        self._control.put((MSG_DISCONNECT, None))
+
     def connect(self):
         self._control.put((MSG_CONNECT, None))
 

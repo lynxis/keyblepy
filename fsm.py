@@ -126,17 +126,16 @@ class Device(object):
             """
         self._connect()
 
-    def on_discover_received(self, message):
-        print(message)
-
     def discover(self):
         if self.userid is None:
             raise RuntimeError("Missing user id!")
 
         self._connect()
-        LOG.info("Waiting %s", self.ready.is_set())
         self.ready.wait()
-        LOG.info("Discover is over")
+        self.disconnect()
+
+    def disconnect(self):
+        self.ll.disconnect()
 
     def status(self):
         """ returns the status of the lock or raise an exception """
