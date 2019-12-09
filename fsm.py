@@ -127,7 +127,7 @@ class Device(object):
 
         self._connect()
         with self.ready:
-            self.ready.wait_for(self.ready_finish)
+            self.ready.wait_for(lambda: self.ready_finish)
 
     def status(self):
         """ returns the status of the lock or raise an exception """
