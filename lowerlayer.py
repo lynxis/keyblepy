@@ -140,6 +140,7 @@ class LowerLayer(object):
 
         self._running = True
         self._thread = threading.Thread(target=self.work, name="lowerlayer")
+        self._thread.start()
 
     def handleNotification(self, handle, data):
         """ called by the ble stack """
@@ -202,8 +203,6 @@ class LowerLayer(object):
         self._send_fragment_index = 0
         self._send_fragment_try = 1
 
-        if not self._thread.is_alive():
-            self._thread.start()
 
     def on_enter_send(self):
         """ send the next fragment """
@@ -269,6 +268,8 @@ class LowerLayer(object):
                     self.ev_enqueue_message()
             if self.state != "disconnected":
                 self._ble_node.waitForNotifications(self.timeout)
+            else:
+                time.sleep(0.1)
 
     # user api functions
     def connect(self):
