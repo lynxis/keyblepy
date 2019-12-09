@@ -34,8 +34,8 @@ def ui_scan():
         print("{}".format(dev.addr))
 
 def ui_discover(device, userid=1):
-    device = Device(device)
-    device.discover(userid=userid)
+    device = Device(device, userid=userid)
+    device.discover()
 
 def ui_status(device, userid, userkey):
     device = Device(device, userid=userid, userkey=userkey)
