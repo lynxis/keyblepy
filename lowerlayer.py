@@ -172,7 +172,11 @@ class LowerLayer(object):
             self._send_pdu(FragmentAck(fragment.status).encode())
             return
 
+        if len(message) > 1:
+            raise RuntimeError("To many messages received")
+
         # try to decode message
+        message = message[0]
         message_type = message[0]
         LOG.info("Received message type 0x%x", message_type)
         try:
