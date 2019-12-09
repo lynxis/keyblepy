@@ -127,6 +127,8 @@ class LowerLayer(object):
 
     def _ble_notify(self, handle, data):
         """ called by the ble stack """
+
+        LOG.info("Received on %x data : %s", handle, data)
         if not self._ble_recv:
             return
         if handle != self._ble_recv.getHandle():
@@ -147,6 +149,7 @@ class LowerLayer(object):
 
         # this is not the last fragment, send an ack
         if not message:
+            LOG.debug("Sending FragmentAck")
             self._send_pdu(FragmentAck(fragment.status).encode())
             return
 
