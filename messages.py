@@ -6,7 +6,7 @@
 from exceptions import InvalidData
 import logging
 
-from struct import pack, unpack
+from struct import pack, unpack_from
 
 MESSAGE_FRAGMENT_ACK = 0x01
 MESSAGE_ANSWER_WITHOUT_SECURITY = 0x01
@@ -140,7 +140,7 @@ class FragmentAck(Send, Recv):
         if data[0] != FragmentAck.msgtype:
             raise InvalidData("Wrong msgtype")
 
-        _msgtype, fragmentid = unpack('<BB', data)
+        _msgtype, fragmentid = unpack_from('<BB', data)
         return cls(fragmentid)
 
 class ConnectionInfoMessage(Send, Recv):
@@ -168,7 +168,7 @@ class ConnectionInfoMessage(Send, Recv):
         if data[0] != ConnectionInfoMessage.msgtype:
             raise InvalidData("Wrong msgtype")
 
-        _msgtype, userid, remote_session_nonce, bootloader, application = unpack('<BBQBB', data)
+        _msgtype, userid, remote_session_nonce, bootloader, application = unpack_from('<BBQBB', data)
         return cls(userid, remote_session_nonce, bootloader, application)
 
 class ConnectionRequestMessage(Send):
@@ -194,7 +194,7 @@ class ConnectionRequestMessage(Send):
         if data[0] != cls.msgtype:
             raise InvalidData("Wrong msgtype")
 
-        _msgtype, userid, nonce = unpack('<BBQBB', data)
+        _msgtype, userid, nonce = unpack_from('<BBQBB', data)
         return cls(userid, nonce)
 
 class StatusRequestMessage(Send):
@@ -220,7 +220,7 @@ class StatusRequestMessage(Send):
         if data[0] != cls.msgtype:
             raise InvalidData("Wrong msgtype")
 
-        _msgtype, userid, nonce = unpack('<BBQBB', data)
+        _msgtype, userid, nonce = unpack_from('<BBQBB', data)
         return cls(userid, nonce)
 
 class StatusInfoMessage(Send):
