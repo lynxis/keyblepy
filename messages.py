@@ -4,6 +4,7 @@
 # GPLv3
 
 from exceptions import InvalidData
+import logging
 
 from struct import pack, unpack
 from trepan.api import debug
@@ -21,6 +22,8 @@ MESSAGE_STATUS_INFO = 0x83
 MESSAGE_COMMAND = 0x87
 MESSAGE_USER_INFO = 0x8f
 MESSAGE_USER_NAME_SET = 0x90
+
+LOG = logging.getLogger("messages")
 
 def encode_fragment(message):
     """ split the message into fragments.
@@ -46,13 +49,16 @@ def encode_fragment(message):
         pdu.append(status)
 
         # payload
-        start = i * 16
-        end = (i + 1) * 16
+        start = i * 15
+        end = (i + 1) * 15
         pdu.extend(message[start:end])
+
+        LOG.debug("Before pad len pdu %d", len(pdu))
 
         # padding
         if len(pdu) < 16:
             pdu.extend((len(pdu) % 16) * b'\x00')
+        LOG.debug("After pad len pdu %d", len(pdu))
 
         fragments += [pdu]
     return fragments
