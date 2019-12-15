@@ -17,7 +17,7 @@ def _aes_encrypt(key, data):
     return encryptor.encrypt(data)
 
 def _pad_array(data, step, minimum):
-    length = _padding_length(data, step, minimum)
+    length = _padding_length(len(data), step, minimum)
     if len(data) != length:
         data.extend(0x0 * length - (len(data)))
     return data
