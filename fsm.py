@@ -128,17 +128,19 @@ class Device(object):
 
             a userid must be also given via the device class.
             """
-        self.userkey = userkey
         LOG.info("Starting to pair")
 
         self._connect()
         self.ready.wait()
+        _userkey = bytearray(userkey)
+        _cardkey = bytearray(cardkey)
+        self.userkey = _userkey
         pkg = PairingRequestMessage.create(
             self.userid,
-            userkey,
+            _userkey,
             self.remote_nonce,
             self.security_counter,
-            cardkey)
+            _cardkey)
         self.ll.send(pkg)
 
     def discover(self):
