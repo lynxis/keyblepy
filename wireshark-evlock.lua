@@ -32,6 +32,9 @@ local f_local_nounce = ProtoField.new("Local Session Nounce", "evlock.local_noun
 local f_remote_nounce = ProtoField.new("Remote Session Nounce", "evlock.remote_nounce", ftypes.UINT64)
 evlock.fields = { f_fragment_status, f_type, f_answer, f_userid, f_bootver, f_appver, f_local_nounce, f_remote_nounce }
 
+function setContains(set, key)
+    return set[key] ~= nil
+end
 
 function evlock.dissector(buffer, pinfo, tree)
   local status = buffer(0, 1):uint()
@@ -39,16 +42,22 @@ function evlock.dissector(buffer, pinfo, tree)
   local payload_len = buffer:len() - 2
 
   pinfo.cols.protocol = "evlock"
-  pinfo.cols.info = types[msg_type]
-
-  local subtree = tree:add(evlock, buffer(), "evlock")
-  subtree:add(f_fragment_status, buffer(0, 1))
 
   -- support only non-fragmented packets
   if status ~= 0x80 then
     string.format("%s %s", pinfo.cols.info, "Fragment")
     return
   end
+
+  if setContains(types, msg_type) then
+    pinfo.cols.info = types[msg_type]
+  else
+    pinfo.cols.info = "Unknown Message"
+  end
+
+  local subtree = tree:add(evlock, buffer(), "evlock")
+  subtree:add(f_fragment_status, buffer(0, 1))
+
 
   subtree:add(f_type, buffer(1, 1))
 
