@@ -1,3 +1,4 @@
+require 'bitop'
 
 evlock = Proto("evlock", "evlock")
 
@@ -28,11 +29,13 @@ local f_fragment_status = ProtoField.new("Fragment status", "evlock.fragment_sta
 local f_type = ProtoField.new("Message Type", "evlock.type", ftypes.UINT8, types)
 local f_answer = ProtoField.new("Answer", "evlock.answer", ftypes.UINT8, answer_types)
 local f_userid = ProtoField.new("UserID", "evlock.userid", ftypes.UINT8)
-local f_bootver = ProtoField.new("Bootloader Version", "evlock.bootversion", ftypes.UINT16)
-local f_appver = ProtoField.new("Application Version", "evlock.appversion", ftypes.UINT16)
+local f_bootver_major = ProtoField.new("Bootloader Version Major", "evlock.bootversion_major", ftypes.UINT8)
+local f_bootver_minor = ProtoField.new("Bootloader Version Minor", "evlock.bootversion_minor", ftypes.UINT8)
+local f_appver_major = ProtoField.new("Application Version Major", "evlock.appversion", ftypes.UINT8)
+local f_appver_minor = ProtoField.new("Application Version Minor", "evlock.appversion", ftypes.UINT8)
 local f_local_nounce = ProtoField.new("Local Session Nounce", "evlock.local_nounce", ftypes.UINT64)
 local f_remote_nounce = ProtoField.new("Remote Session Nounce", "evlock.remote_nounce", ftypes.UINT64)
-evlock.fields = { f_fragment_status, f_type, f_answer, f_userid, f_bootver, f_appver, f_local_nounce, f_remote_nounce }
+evlock.fields = { f_fragment_status, f_type, f_answer, f_userid, f_bootver_major, f_bootver_minor, f_appver_major, f_appver_minor, f_local_nounce, f_remote_nounce }
 
 function setContains(set, key)
     return set[key] ~= nil
@@ -75,8 +78,12 @@ function evlock.dissector(buffer, pinfo, tree)
   elseif types[msg_type] == "CONNECTION_INFO" then
     subtree:add_packet_field(f_userid, buffer(2, 1), 0)
     subtree:add_packet_field(f_remote_nounce, buffer(3, 8), ENC_LITTLE_ENDIAN)
-    subtree:add_packet_field(f_bootver, buffer(11, 1), 0)
-    subtree:add_packet_field(f_appver, buffer(13, 1), 0)
+    -- TODO: subtree:add_packet_field(unknown, buffer(11, 1), 0)
+    subtree:add(f_bootver_major, buffer(12, 1), bit.rshift(buffer(12, 1):uint(), 4))
+    subtree:add(f_bootver_minor, buffer(12, 1), bit.band(buffer(12, 1):uint(), 0xf))
+    subtree:add(f_appver_major, buffer(13, 1), bit.rshift(buffer(13, 1):uint(), 4))
+    subtree:add(f_appver_minor, buffer(13, 1), bit.band(buffer(13, 1):uint(), 0xf))
+
   elseif types[msg_type] == "CONNECTION_REQUEST" then
     subtree:add_packet_field(f_userid, buffer(2, 1), 0)
     subtree:add_packet_field(f_local_nounce, buffer(3, 8), ENC_LITTLE_ENDIAN)
