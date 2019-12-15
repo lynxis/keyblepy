@@ -17,10 +17,12 @@ def _aes_encrypt(key, data):
     return encryptor.encrypt(data)
 
 def _pad_array(data, step, minimum):
-    length = _padding_length(len(data), step, minimum)
-    if len(data) != length:
-        data.extend(0x0 * length - (len(data)))
-    return data
+    _data = bytearray(data)
+
+    length = _padding_length(len(_data), step, minimum)
+    if len(_data) != length:
+        _data.extend(0x0 * length - (len(_data)))
+    return _data
 
 def _padding_length(length, step, minimum):
     # Returns the smallest value equal or larger than <value> that equals (<minimum> + (x * <step>)) for a natural number x
