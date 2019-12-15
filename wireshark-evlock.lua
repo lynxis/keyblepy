@@ -42,12 +42,17 @@ function evlock.dissector(buffer, pinfo, tree)
   local status = buffer(0, 1):uint()
   local msg_type = buffer(1, 1):uint()
   local payload_len = buffer:len() - 2
+  local subtree = tree:add(evlock, buffer(), "evlock")
+
+  subtree:add(f_fragment_status, buffer(0, 1))
 
   pinfo.cols.protocol = "evlock"
 
   -- support only non-fragmented packets
-  if status ~= 0x80 then
-    string.format("%s %s", pinfo.cols.info, "Fragment")
+  -- hack around lua bitwise operator missing in lua < 5.3
+  if status < 0x80 then
+    -- string.format("%s %s", pinfo.cols.info, "Fragment")
+    pinfo.cols.info = "FRAGMENT"
     return
   end
 
@@ -57,9 +62,9 @@ function evlock.dissector(buffer, pinfo, tree)
     pinfo.cols.info = "Unknown Message"
   end
 
-  local subtree = tree:add(evlock, buffer(), "evlock")
-  subtree:add(f_fragment_status, buffer(0, 1))
-
+  if status > 0x80 then
+    pinfo.cols.info = string.format("%s %s", pinfo.cols.info, "(first Fragment)")
+  end
 
   subtree:add(f_type, buffer(1, 1))
 
