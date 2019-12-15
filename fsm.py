@@ -129,6 +129,7 @@ class Device(object):
             a userid must be also given via the device class.
             """
         self.userkey = userkey
+        LOG.info("Starting to pair")
 
         self._connect()
         self.ready.wait()

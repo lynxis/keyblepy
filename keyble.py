@@ -4,7 +4,9 @@
 # GPLv3
 
 import argparse
+import binascii
 import logging
+import re
 
 from bluepy.btle import Scanner, DefaultDelegate
 from fsm import Device
@@ -38,6 +40,17 @@ def ui_discover(device, userid=1):
     device = Device(device, userid=userid)
     device.discover()
 
+def ui_pair(device, userid, userkey, cardkey):
+    # TODO: check userkey, cardkey, userid
+    _userkey = binascii.unhexlify(userkey)
+    if len(_userkey) != 16:
+        raise RuntimeError("Userkey is too short or too long. Expecting 16 byte encode as hex (32 characters)")
+    _cardkey = binascii.unhexlify(cardkey)
+    if len(_cardkey) != 16:
+        raise RuntimeError("Cardkey is too short or too long. Expecting 16 byte encode as hex (32 characters)")
+    device = Device(device, userid=userid)
+    device.pair(userkey, cardkey)
+
 def ui_status(device, userid, userkey):
     device = Device(device, userid=userid, userkey=userkey)
     status = device.status()
@@ -48,7 +61,7 @@ def main():
     parser.add_argument('--scan', dest='scan', action='store_true', help='Scan for KeyBLEs')
     parser.add_argument('--device', dest='device', help='Device MAC address')
     parser.add_argument('--discover', dest='discover', action='store_true', help='Ask the bootloader/app version')
-    parser.add_argument('--user-id', dest='userid', help='The user id')
+    parser.add_argument('--user-id', dest='userid', help='The user id', type=int)
     parser.add_argument('--user-key', dest='userkey', help='The user key (a rsa key generated when registering the user)')
     parser.add_argument('--status', dest='status', action='store_true', help='Shows the status. Require --user-id --user-key --device.')
     parser.add_argument('--open', dest='open', action='store_true', help='Unlock and Open. Require --user-id --user-key --device.')
@@ -56,7 +69,7 @@ def main():
     parser.add_argument('--unlock', dest='unlock', action='store_true', help='Unlock. Require --user-id --user-key --device.')
     parser.add_argument('--register', dest='register', action='store_true', help='Register a new user. Require --qrdata, optional --user-name')
     parser.add_argument('--user-name', dest='username', help='The administrator will see this name when listing all users')
-    parser.add_argument('--qrdata', dest='qrdata', help='The QR Code as data. This contains the mac,secret,serial.')
+    parser.add_argument('--qrdata', dest='qrdata', help='The QR Code as data. This contains the mac,cardkey,serial.')
     logging.basicConfig(level=logging.DEBUG)
     args = parser.parse_args()
     if args.scan:
@@ -65,6 +78,24 @@ def main():
         ui_status(args.device, args.userid, args.userkey)
     if args.discover:
         ui_discover(args.device)
+    if args.register:
+        if not args.qrdata:
+            raise RuntimeError("You need to specify --qrdata")
+
+        # M001234556678K01234567890ABCDEF023456789ABCDEF0123456789
+        rex = re.compile(r'^M([0-9A-F]{12})K([0-9A-F]{32})([0-9A-Z]{10})$')
+        match = rex.match(args.qrdata)
+        if not match:
+            raise RuntimeError("Invalid QR Data")
+        smac, cardkey, serial = match.groups()
+        mac = ""
+        for i in range(len(smac) >> 1):
+            mac += smac[i*2]
+            mac += smac[i*2+1]
+            mac += ":"
+        mac = mac[0:-1]
+
+        ui_pair(mac, args.userid, args.userkey, cardkey)
 
 if __name__ == '__main__':
     main()
