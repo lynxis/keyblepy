@@ -3,6 +3,8 @@
 # License ISC
 #
 # a close 1:1 copy from the `keyble` code (coffe script code - isc)
+# TODO: check if we can use AES/ECB with PKCS7 padding.
+# TODO: do we have to support the 'other' encryption methods? In theory there might be other encryption than this one
 
 import math
 from struct import pack, unpack
