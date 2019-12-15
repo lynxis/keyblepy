@@ -15,6 +15,8 @@ local types = {
   [0x82] = "STATUS_REQUEST",
   [0x8f] = "USER_INFO",
   [0x90] = "USER_NAME_SET",
+  [0x11] = "FIRMWARE_UPDATE",
+  [0x12] = "FIRMWARE_UPDATE_2",
 }
 local answer_types = {
   [0x80] = "Failed",
