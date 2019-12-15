@@ -84,6 +84,10 @@ class Device(object):
             self.remote_nonce = message.remote_session_nonce
             self.remote_nonce_byte = bytearray(pack('<Q', self.remote_nonce))
             self.ev_nonce_received()
+        elif isinstance(message, AnswerWithSecurity):
+            pass
+        elif isinstance(message, AnswerWithoutSecurity):
+            pass
         else:
             LOG.info("Unknown message %s", message)
 
@@ -118,13 +122,23 @@ class Device(object):
         pass
 
     # interface
-    def pair(self, user_key, card_key):
+    def pair(self, userkey, cardkey):
         """ :param user_key as bytearray (128 bit / 16 byte)
             :param card_Key the key from the card as bytearray (128 bit / 16 byte)
 
-            a user_id must be also given via the device class.
+            a userid must be also given via the device class.
             """
+        self.userkey = userkey
+
         self._connect()
+        self.ready.wait()
+        pkg = PairingRequestMessage.create(
+            self.userid,
+            userkey,
+            self.remote_nonce,
+            self.security_counter,
+            cardkey)
+        self.ll.send(pkg)
 
     def discover(self):
         if self.userid is None:
