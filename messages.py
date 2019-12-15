@@ -6,7 +6,9 @@
 from exceptions import InvalidData
 import logging
 
-from struct import pack, unpack_from
+from struct import pack, unpack_from, calcsize
+# local imports
+from encrypt import compute_authentication_value, encrypt_message
 
 MESSAGE_FRAGMENT_ACK = 0x01
 MESSAGE_ANSWER_WITHOUT_SECURITY = 0x01
@@ -288,11 +290,63 @@ class StatusChangedMessage(Send):
             '<B',
             StatusChangedMessage.msgtype)
 
+class PairingRequestMessage(Send, Recv):
+    msgtype = 0x04
+    def __init__(self, userid, encrypted_pair_key, security_counter, authentication):
+        self.userid = userid
+        self.encrypted_pair_key = encrypted_pair_key
+        self.security_counter = security_counter
+        self.authentication = authentication
+
+        if len(self.encrypted_pair_key) != 22:
+            raise InvalidData("Wrong msgtype")
+
+    def encode(self):
+        head = pack('<BB', PairingRequestMessage.msgtype, self.userid)
+        tail = pack('<HL', self.security_counter, self.authentication)
+        return head + self.encrypted_pair_key + tail
+
+    @classmethod
+    def decode(cls, data):
+        if len(data) < 29:
+            raise InvalidData("Input to short")
+
+        if data[0] != cls.msgtype:
+            raise InvalidData("Wrong msgtype")
+
+        head = calcsize('<BB')
+        tail = head + 22
+        _msgtype, userid = unpack_from('<BB', data)
+        encrypted_pair_key = data[head:tail]
+        security_counter, authentication = unpack_from('<HL', data, tail)
+
+        return cls(userid, encrypted_pair_key, security_counter, authentication)
+
+    @classmethod
+    def create(cls, userid, userkey, remote_session_nonce, local_security_counter, card_key):
+        # pad userkey
+        if len(userkey) < 22:
+            userkey.extend((22 - len(userkey)) * b'\x00')
+        encrypted_pair_key = encrypt_message(userkey, remote_session_nonce, local_security_counter, card_key)
+
+        auth_data = bytearray()
+        auth_data.append(userid)
+        auth_data.extend(userkey)
+        authentication = compute_authentication_value(
+            auth_data,
+            PairingRequestMessage.msgtype,
+            remote_session_nonce,
+            local_security_counter,
+            card_key)
+
+        return cls(userid, encrypted_pair_key, local_security_counter, authentication)
+
 MESSAGES = {
         0x00: FragmentAck,
         0x01: AnswerWithoutSecurity,
         0x02: ConnectionRequestMessage,
         0x03: ConnectionInfoMessage,
+        0x04: PairingRequestMessage,
         0x05: StatusChangedMessage,
         0x81: AnswerWithSecurity,
         0x82: StatusRequestMessage,
