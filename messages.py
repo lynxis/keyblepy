@@ -143,6 +143,46 @@ class FragmentAck(Send, Recv):
         _msgtype, fragmentid = unpack_from('<BB', data)
         return cls(fragmentid)
 
+class AnswerWithoutSecurity(Send, Recv):
+    """ An Answer to our last command """
+    msgtype = 0x01
+    def __init__(self, answer):
+        # uint8
+        if answer > 255:
+            raise InvalidData("answer does not fit into a byte")
+        self.answer = answer
+
+    def encode(self):
+        return pack('<BB', FragmentAck.msgtype, self.answer)
+
+    @classmethod
+    def decode(cls, data):
+        if data[0] != AnswerWithoutSecurity.msgtype:
+            raise InvalidData("Wrong msgtype")
+
+        _msgtype, answer = unpack_from('<BB', data)
+        return cls(answer)
+
+class AnswerWithSecurity(Send, Recv):
+    """ An Answer to our last command """
+    msgtype = 0x81
+    def __init__(self, answer):
+        # uint8
+        if answer:
+            raise InvalidData("answer does not fit into a byte")
+        self.answer = answer
+
+    def encode(self):
+        return pack('<BB', FragmentAck.msgtype, self.answer)
+
+    @classmethod
+    def decode(cls, data):
+        if data[0] != AnswerWithoutSecurity.msgtype:
+            raise InvalidData("Wrong msgtype")
+
+        _msgtype, answer = unpack_from('<BB', data)
+        return cls(answer)
+
 class ConnectionInfoMessage(Send, Recv):
     msgtype = 0x03
     def __init__(self, userid, remote_session_nonce, bootloader, application):
@@ -250,9 +290,11 @@ class StatusChangedMessage(Send):
 
 MESSAGES = {
         0x00: FragmentAck,
+        0x01: AnswerWithoutSecurity,
         0x02: ConnectionRequestMessage,
         0x03: ConnectionInfoMessage,
         0x05: StatusChangedMessage,
+        0x81: AnswerWithSecurity,
         0x82: StatusRequestMessage,
         0x83: StatusInfoMessage,
 }
