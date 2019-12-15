@@ -211,7 +211,7 @@ class ConnectionInfoMessage(Send, Recv):
         _msgtype, userid, remote_session_nonce, bootloader, application = unpack_from('<BBQBB', data)
         return cls(userid, remote_session_nonce, bootloader, application)
 
-class ConnectionRequestMessage(Send):
+class ConnectionRequestMessage(Send, Recv):
     msgtype = 0x02
     def __init__(self, userid, nonce):
         # uint8
@@ -237,7 +237,7 @@ class ConnectionRequestMessage(Send):
         _msgtype, userid, nonce = unpack_from('<BBQBB', data)
         return cls(userid, nonce)
 
-class StatusRequestMessage(Send):
+class StatusRequestMessage(Send, Recv):
     msgtype = 0x82
     def __init__(self, userid, nonce):
         # uint8
