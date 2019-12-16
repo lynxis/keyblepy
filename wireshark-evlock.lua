@@ -58,6 +58,9 @@ local f_appver_major = ProtoField.new("Application Version Major", "evlock.appve
 local f_appver_minor = ProtoField.new("Application Version Minor", "evlock.appversion", ftypes.UINT8)
 local f_local_nounce = ProtoField.new("Local Session Nounce", "evlock.local_nounce", ftypes.UINT64)
 local f_remote_nounce = ProtoField.new("Remote Session Nounce", "evlock.remote_nounce", ftypes.UINT64)
+local f_encrypted_userkey = ProtoField.new("Encrypted Userkey", "evlock.encrypted_userkey", ftypes.STRING)
+local f_security_counter = ProtoField.new("Local Security Counter", "evlock.local_security_counter", ftypes.UINT16)
+local f_authentication = ProtoField.new("Authentication (HMAC)", "evlock.autentication", ftypes.UINT16)
 evlock.fields = { f_fragment_status, f_type, f_answer, f_userid, f_bootver_major, f_bootver_minor, f_appver_major, f_appver_minor, f_local_nounce, f_remote_nounce }
 
 function setContains(set, key)
@@ -107,6 +110,12 @@ function evlock.dissector(buffer, pinfo, tree)
     subtree:add(f_appver_major, buffer(13, 1), bit.rshift(buffer(13, 1):uint(), 4))
     subtree:add(f_appver_minor, buffer(13, 1), bit.band(buffer(13, 1):uint(), 0xf))
 
+  elseif types[msg_type] == "PAIRING_REQUEST" then
+    subtree:add_packet_field(f_userid, buffer(2, 1), 0)
+    -- TODO: merge fragment
+    -- subtree:add_packet_field(f_encrypted_userkey, buffer(3, 22))
+    -- subtree:add_packet_field(f_security_counter, buffer(25, 2), ENC_LITTLE_ENDIAN)
+    -- subtree:add_packet_field(f_authentication, buffer(27, 4), ENC_LITTLE_ENDIAN)
   elseif types[msg_type] == "CONNECTION_REQUEST" then
     subtree:add_packet_field(f_userid, buffer(2, 1), 0)
     subtree:add_packet_field(f_local_nounce, buffer(3, 8), ENC_LITTLE_ENDIAN)
