@@ -1,4 +1,3 @@
-require 'bitop'
 
 evlock = Proto("evlock", "evlock")
 
