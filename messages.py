@@ -3,6 +3,7 @@
 # 2019 Alexander 'lynxis' Couzens <lynxis@fe80.eu>
 # GPLv3
 
+import binascii
 from exceptions import InvalidData
 import logging
 
@@ -94,13 +95,36 @@ def decode_fragment(pdus):
 
     return (messages, undecoded_pdus)
 
-def test_decode_fragment():
+def test_decode_fragment_one_fragment():
     pdu = bytearray(b'\x80\x03\x011\x0c\xe1{&\x1f\x82\x17\x00\x10\x17\x00\x00')
     pdus = [pdu]
     messages, remain = decode_fragment(pdus)
-    assert(messages)
-    assert(not remain)
-    assert(messages[0] == pdu[1:])
+    assert messages
+    assert not remain
+    assert messages[0] == pdu[1:]
+
+def test_decode_fragment_multiple_fragment():
+    pdus = [
+        '818f4d24bc21179af3dc74e0984c36b4',
+        '00ce544580d09412264100030eedbc6b',
+        ]
+    pdus = [binascii.unhexlify(pdu) for pdu in pdus]
+    correct_message = bytearray(pdus[0][1:] + pdus[1][1:])
+    messages, remain = decode_fragment(pdus)
+    assert messages
+    assert not remain
+    assert messages[0] == correct_message
+
+def test_encode_fragment():
+    correct_pdus = [
+        '818f4d24bc21179af3dc74e0984c36b4',
+        '00ce544580d09412264100030eedbc6b',
+        ]
+    correct_pdus = [binascii.unhexlify(pdu) for pdu in correct_pdus]
+    message = bytearray(correct_pdus[0][1:] + correct_pdus[1][1:])
+    pdus = encode_fragment(message)
+    assert pdus
+    assert pdus == correct_pdus
 
 class Send():
     def encode(self):
