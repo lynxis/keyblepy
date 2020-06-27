@@ -330,6 +330,10 @@ class PairingRequestMessage(Send, Recv):
         if len(self.encrypted_pair_key) > 23:
             raise InvalidData("Encrypted pair key > 23")
 
+        length = len(self.encrypted_pair_key)
+        if length < 23:
+            self.encrypted_pair_key.expand(b'\x00' * (23 - length))
+
     def encode(self):
         head = pack('<BB', PairingRequestMessage.msgtype, self.userid)
         tail = pack('<HL', self.security_counter, self.authentication)
