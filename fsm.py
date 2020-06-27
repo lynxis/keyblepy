@@ -67,6 +67,9 @@ class Device(object):
         self.remote_nonce = None
         self.remote_nonce_byte = None
 
+        # The connection info
+        self.connection_info = None
+
         self.security_counter = 1
         self.remote_security_counter = 0
 
@@ -83,6 +86,7 @@ class Device(object):
             LOG.info("Receive ConnectionInfoMessage")
             self.remote_nonce = message.remote_session_nonce
             self.remote_nonce_byte = bytearray(pack('<Q', self.remote_nonce))
+            self.connection_info = message
             self.ev_nonce_received()
         elif isinstance(message, AnswerWithSecurity):
             pass
@@ -144,12 +148,15 @@ class Device(object):
         self.ll.send(pkg)
 
     def discover(self):
+        """ return bootloader and application info """
         if self.userid is None:
             raise RuntimeError("Missing user id!")
 
         self._connect()
         self.ready.wait()
         self.disconnect()
+        return {"bootloader": self.connection_info.bootloader,
+                "application": self.connection_info.application,}
 
     def disconnect(self):
         self.ll.disconnect()

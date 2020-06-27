@@ -38,7 +38,8 @@ def ui_scan():
 
 def ui_discover(device, userid=1):
     device = Device(device, userid=userid)
-    device.discover()
+    infos = device.discover()
+    print(infos)
 
 def ui_pair(device, userid, userkey, cardkey):
     # TODO: check userkey, cardkey, userid
