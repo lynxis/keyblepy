@@ -143,7 +143,7 @@ def test_crypt_data():
     data = b'\x01\x02\x03\x04'
     key = b'\x00' * 16
     msg_type_id = 1
-    remote_nonce = b'\x00' * 16
+    remote_nonce = 0
     local_security_counter = 1
     _crypt_data = crypt_data(data, msg_type_id, remote_nonce, local_security_counter, key)
     assert(len(_crypt_data) == len(data))
