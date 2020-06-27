@@ -131,3 +131,8 @@ def test_xor_data():
     xorred = xor_array(data, xor, 1)
     expect = b'\x00\x02\x03\x04'
     assert(xorred == expect)
+
+    data = b'\x01\x02\x03\x04'
+    xor = b'\x00\x00\x00\x00\x01\x02\x03\x04'
+    xorred = xor_array(data, xor, 0)
+    assert(xorred == data)
