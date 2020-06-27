@@ -112,3 +112,21 @@ def test_pad_array():
     pad = bytearray(2 * 15 + 8 - 1)
     pad = _pad_array(pad, 15, 8)
     assert(len(pad) == (2 * 15 + 8))
+
+def test_xor_data():
+    data = b'\x01\x02\x03\x04'
+    xor = b'\x00\x00\x00\x00'
+    xorred = xor_array(data, xor, 0)
+    assert(xorred == data)
+
+    data = b'\x01\x02\x03\x04'
+    xor = b'\x00\x02\x00\x00'
+    xorred = xor_array(data, xor, 0)
+    expect = b'\x01\x00\x03\x04'
+    assert(xorred == expect)
+
+    data = b'\x01\x02\x03\x04'
+    xor = b'\x00\x01\x00\x00'
+    xorred = xor_array(data, xor, 1)
+    expect = b'\x00\x02\x03\x04'
+    assert(xorred == expect)
