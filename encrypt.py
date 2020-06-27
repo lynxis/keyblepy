@@ -48,7 +48,7 @@ def crypt_data(message_data, message_type_id, session_open_nonce, security_count
         tmp.append(0x01)
         tmp.extend(nonce)
         tmp.extend(pack('<H', index + 1))
-        xor_data.append(_aes_encrypt(key, tmp))
+        xor_data.extend(_aes_encrypt(key, tmp))
     return xor_array(message_data, xor_data)
 
 def compute_authentication_value(message_data, message_type_id, session_nonce, security_counter, user_key):
