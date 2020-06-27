@@ -336,7 +336,7 @@ class PairingRequestMessage(Send, Recv):
 
     def encode(self):
         head = pack('<BB', PairingRequestMessage.msgtype, self.userid)
-        tail = pack('<HL', self.security_counter, self.authentication)
+        tail = pack('<H', self.security_counter) + self.authentication
         return head + self.encrypted_pair_key + tail
 
     @classmethod
@@ -351,7 +351,10 @@ class PairingRequestMessage(Send, Recv):
         tail = head + 22
         _msgtype, userid = unpack_from('<BB', data)
         encrypted_pair_key = data[head:tail]
-        security_counter, authentication = unpack_from('<HL', data, tail)
+        security_counter, = unpack_from('<H', data, tail)
+
+        tail += 2
+        authentication = data[tail:tail+4]
 
         return cls(userid, encrypted_pair_key, security_counter, authentication)
 
