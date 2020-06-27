@@ -43,11 +43,13 @@ def crypt_data(message_data, message_type_id, session_open_nonce, security_count
     """ message_data does not contain the message_type_id """
     nonce = compute_nonce(message_type_id, session_open_nonce, security_counter)
     xor_data = bytearray()
+    # do 16 byte at once
     for index in range(_padding_length(len(message_data), 16, 0) // 16):
         tmp = bytearray()
         tmp.append(0x01)
         tmp.extend(nonce)
         tmp.extend(pack('<H', index + 1))
+        tmp = _pad_array(tmp, 16, 0)
         xor_data.extend(_aes_encrypt(key, tmp))
     return xor_array(message_data, xor_data)
 
