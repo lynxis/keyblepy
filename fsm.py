@@ -51,7 +51,7 @@ class Device(object):
         },
     ]
 
-    def __init__(self, mac, userid=None, userkey=None):
+    def __init__(self, mac, userid, userkey=None):
         # should it raise Exception on invalid data?
         self.ignore_invalid = False
         self.mac = mac
@@ -87,6 +87,9 @@ class Device(object):
             self.remote_nonce = message.remote_session_nonce
             self.remote_nonce_byte = bytearray(pack('<Q', self.remote_nonce))
             self.connection_info = message
+            if self.userid == 0xff:
+                LOG.info("Using new Userid %d" % message.userid)
+                self.userid = message.userid
             self.ev_nonce_received()
         elif isinstance(message, AnswerWithSecurity):
             pass
@@ -107,9 +110,7 @@ class Device(object):
 
     def on_enter_connected(self):
         # if userid given, go to the next state
-        LOG.info("Connected")
-        if self.userid:
-            self.ll.send(ConnectionRequestMessage(self.userid, self.nonce))
+        self.ll.send(ConnectionRequestMessage(self.userid, self.nonce))
 
     def on_enter_authenticate(self):
         # self.ll.send(Authenticate(self.userid, self.nonce))
@@ -136,6 +137,7 @@ class Device(object):
 
         self._connect()
         self.ready.wait()
+        LOG.info("userkey: %s %s" % (userkey, str(type(userkey))))
         _userkey = bytearray(userkey)
         _cardkey = bytearray(cardkey)
         self.userkey = _userkey

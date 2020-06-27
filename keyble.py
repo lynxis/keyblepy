@@ -42,6 +42,9 @@ def ui_discover(device, userid=1):
     print(infos)
 
 def ui_pair(device, userid, userkey, cardkey):
+    if userid == None:
+        userid = 0xff
+
     # TODO: check userkey, cardkey, userid
     _userkey = binascii.unhexlify(userkey)
     if len(_userkey) != 16:
@@ -50,7 +53,7 @@ def ui_pair(device, userid, userkey, cardkey):
     if len(_cardkey) != 16:
         raise RuntimeError("Cardkey is too short or too long. Expecting 16 byte encode as hex (32 characters)")
     device = Device(device, userid=userid)
-    device.pair(userkey, cardkey)
+    device.pair(_userkey, _cardkey)
 
 def ui_status(device, userid, userkey):
     device = Device(device, userid=userid, userkey=userkey)

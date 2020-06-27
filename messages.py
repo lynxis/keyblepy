@@ -246,6 +246,7 @@ class ConnectionRequestMessage(Send, Recv):
         self.nonce = nonce
 
     def encode(self):
+        LOG.error("Encoding: '%s' '%s' '%s'", ConnectionRequestMessage.msgtype, self.userid, self.nonce)
         return pack(
             '<BBQ',
             ConnectionRequestMessage.msgtype,
