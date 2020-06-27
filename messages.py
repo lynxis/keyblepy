@@ -219,10 +219,11 @@ class ConnectionInfoMessage(Send, Recv):
 
     def encode(self):
         return pack(
-            '<BBQBB',
+            '<BBQBBB',
             ConnectionInfoMessage.msgtype,
             self.userid,
             self.remote_session_nonce,
+            0x00, # unknown, pad it
             self.bootloader,
             self.application)
 
@@ -234,7 +235,7 @@ class ConnectionInfoMessage(Send, Recv):
         if data[0] != ConnectionInfoMessage.msgtype:
             raise InvalidData("Wrong msgtype")
 
-        _msgtype, userid, remote_session_nonce, bootloader, application = unpack_from('<BBQBB', data)
+        _msgtype, userid, remote_session_nonce, _unknown, bootloader, application = unpack_from('<BBQBBB', data)
         return cls(userid, remote_session_nonce, bootloader, application)
 
 class ConnectionRequestMessage(Send, Recv):
