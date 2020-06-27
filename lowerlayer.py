@@ -164,8 +164,8 @@ class LowerLayer(object):
         # FragmentAck?
         # FIXME: hack
         if fragment.status == 0x80 and fragment.payload[0] == 0x00:
-            if fragment.payload[1] == self._send_fragments[self._send_fragment_index][0]:
-                LOG.info("Received unknown FragmentAck")
+            if fragment.payload[1] != self._send_fragments[self._send_fragment_index][0]:
+                LOG.err("Received unknown FragmentAck")
                 return
             else:
                 LOG.info("Received correct FragmentAck")
@@ -239,14 +239,18 @@ class LowerLayer(object):
                 return
 
         self._send_fragment_index += 1
-        self._send_fragment_try = 1
-        self._send_pdu(self._send_fragments[self._send_fragment_index])
-        if len(self._send_fragments) >= self._send_fragment_index + 1:
+        self._send_fragment_try = 0
+
+        LOG.debug("send_fragment %d %d", len(self._send_fragments), self._send_fragment_index)
+
+        if len(self._send_fragments) <= self._send_fragment_index + 1:
+            self._send_pdu(self._send_fragments[self._send_fragment_index])
             # last message
             self.ev_finished()
         else:
             # when not the last message, we're expecting an FragmentAck
             self.ev_send_fragment()
+            self._send_pdu(self._send_fragments[self._send_fragment_index])
 
     def on_timeout_wait_ack(self):
         # resend
@@ -273,6 +277,9 @@ class LowerLayer(object):
         self._ble_recv = None
         del self._ble_node
         self._ble_node = None
+
+    def on_enter_wait_ack(self):
+        pass
 
     def _connect(self):
         self._ble_node.connect(self._mac)
