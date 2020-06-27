@@ -21,7 +21,7 @@ def _pad_array(data, step, minimum):
 
     length = _padding_length(len(_data), step, minimum)
     if len(_data) != length:
-        _data.extend(0x0 * length - (len(_data)))
+        _data.extend(bytearray(length - (len(_data))))
     return _data
 
 def _padding_length(length, step, minimum):
