@@ -74,6 +74,7 @@ def compute_authentication_value(message_data, message_type_id, session_nonce, s
     tmp.append(0x00)
     tmp.append(0x00)
     tmp.extend(pack('<H', padded_length))
+    tmp = _pad_array(tmp, 16, 0)
     return xor_array(
         encrypted_xor_data[0:4],
         _aes_encrypt(user_key, tmp)
