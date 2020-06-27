@@ -327,12 +327,12 @@ class PairingRequestMessage(Send, Recv):
         if len(self.encrypted_pair_key) < 16:
             raise InvalidData("Encrypted pair key < 16")
 
-        if len(self.encrypted_pair_key) > 23:
-            raise InvalidData("Encrypted pair key > 23")
+        if len(self.encrypted_pair_key) > 22:
+            raise InvalidData("Encrypted pair key > 22")
 
         length = len(self.encrypted_pair_key)
-        if length < 23:
-            self.encrypted_pair_key.extend(b'\x00' * (23 - length))
+        if length < 22:
+            self.encrypted_pair_key.extend(b'\x00' * (22 - length))
 
     def encode(self):
         head = pack('<BB', PairingRequestMessage.msgtype, self.userid)
@@ -364,10 +364,11 @@ class PairingRequestMessage(Send, Recv):
         if len(userkey) != 16:
             raise RuntimeError("Invalid user key given")
 
+        encrypted_pair_key = crypt_data(userkey, cls.msgtype, remote_session_nonce, local_security_counter, card_key)
+
         pad_userkey = bytearray(userkey)
         pad_userkey.extend(b'\x00' * 6)
         #    userkey.extend((22 - len(userkey)) * b'\x00')
-        encrypted_pair_key = crypt_data(userkey, cls.msgtype, remote_session_nonce, local_security_counter, card_key)
 
         auth_data = bytearray()
         auth_data.append(userid)
