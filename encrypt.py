@@ -138,3 +138,12 @@ def test_xor_data():
     xor = b'\x00\x00\x00\x00\x01\x02\x03\x04'
     xorred = xor_array(data, xor, 0)
     assert(xorred == data)
+
+def test_crypt_data():
+    data = b'\x01\x02\x03\x04'
+    key = b'\x00' * 16
+    msg_type_id = 1
+    remote_nonce = b'\x00' * 16
+    local_security_counter = 1
+    _crypt_data = crypt_data(data, msg_type_id, remote_nonce, local_security_counter, key)
+    assert(len(_crypt_data) == len(data))
