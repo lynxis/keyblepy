@@ -392,3 +392,18 @@ MESSAGES = {
         0x82: StatusRequestMessage,
         0x83: StatusInfoMessage,
 }
+
+def test_pairing_request():
+    from pprint import pprint
+    request = PairingRequestMessage.create(
+            userid=0x1,
+            userkey=b'\x00' * 16,
+            remote_session_nonce=0,
+            local_security_counter=1,
+            card_key=b'\x00' * 16)
+    encoded = request.encode()
+    fragment = encode_fragment(encoded)
+
+    pprint(fragment)
+    pprint(len(encoded))
+    assert(False)
