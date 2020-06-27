@@ -350,14 +350,17 @@ class PairingRequestMessage(Send, Recv):
 
     @classmethod
     def create(cls, userid, userkey, remote_session_nonce, local_security_counter, card_key):
-        # pad userkey
-        if len(userkey) < 22:
-            userkey.extend((22 - len(userkey)) * b'\x00')
+        # pad userkey- no?
+        if len(userkey) != 16:
+            raise RuntimeError("Invalid user key given")
+
+        pad_userkey = userkey.extend(b'\x00' * 8)
+        #    userkey.extend((22 - len(userkey)) * b'\x00')
         encrypted_pair_key = crypt_data(userkey, cls.msgtype, remote_session_nonce, local_security_counter, card_key)
 
         auth_data = bytearray()
         auth_data.append(userid)
-        auth_data.extend(userkey)
+        auth_data.extend(pad_userkey)
         authentication = compute_authentication_value(
             auth_data,
             PairingRequestMessage.msgtype,
