@@ -324,8 +324,11 @@ class PairingRequestMessage(Send, Recv):
         self.security_counter = security_counter
         self.authentication = authentication
 
-        if len(self.encrypted_pair_key) != 22:
-            raise InvalidData("Wrong msgtype")
+        if len(self.encrypted_pair_key) < 16:
+            raise InvalidData("Encrypted pair key < 16")
+
+        if len(self.encrypted_pair_key) > 23:
+            raise InvalidData("Encrypted pair key > 23")
 
     def encode(self):
         head = pack('<BB', PairingRequestMessage.msgtype, self.userid)
