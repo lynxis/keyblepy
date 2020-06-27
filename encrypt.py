@@ -35,7 +35,7 @@ def compute_nonce(message_type_id, session_open_nonce, security_counter):
 def xor_array(data, xor_data, xor_data_offset=0):
     """ XOR @data with the @xor_data """
     xorred = bytearray()
-    for i in range(len(xorred)):
+    for i in range(len(data)):
         xorred.append(data[i] ^ xor_data[(xor_data_offset + i) % len(xor_data)])
     return xorred
 
