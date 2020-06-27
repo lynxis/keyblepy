@@ -177,6 +177,7 @@ class LowerLayer(object):
 
         # try to decode message
         message = message[0]
+        raw = message
         message_type = message[0]
         LOG.info("Received message type 0x%x", message_type)
         try:
@@ -185,7 +186,7 @@ class LowerLayer(object):
                 return
             message_cls = MESSAGES[message_type]
             message = message_cls.decode(message)
-            LOG.info("Received decoded message %s", message)
+            LOG.info("Received decoded message %s <- %s", message, raw.hex())
         except Exception as exp:
             LOG.info("Receive exception %s", exp)
             if self.ignore_invalid:
