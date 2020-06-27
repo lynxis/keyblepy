@@ -96,7 +96,7 @@ def encrypt_message(message, remote_nonce, local_security_counter, user_key):
 
     return tmp
 
-def _test_pad_array():
+def test_pad_array():
     pad = bytearray(8)
     pad = _pad_array(pad, 15, 8)
     assert(len(pad) == 8)
@@ -108,3 +108,7 @@ def _test_pad_array():
     pad = bytearray(15)
     pad = _pad_array(pad, 15, 8)
     assert(len(pad) == (15 + 8))
+
+    pad = bytearray(2 * 15 + 8 - 1)
+    pad = _pad_array(pad, 15, 8)
+    assert(len(pad) == (2 * 15 + 8))
