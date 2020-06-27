@@ -332,7 +332,7 @@ class PairingRequestMessage(Send, Recv):
 
         length = len(self.encrypted_pair_key)
         if length < 23:
-            self.encrypted_pair_key.expand(b'\x00' * (23 - length))
+            self.encrypted_pair_key.extend(b'\x00' * (23 - length))
 
     def encode(self):
         head = pack('<BB', PairingRequestMessage.msgtype, self.userid)
