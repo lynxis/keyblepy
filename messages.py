@@ -354,8 +354,8 @@ class PairingRequestMessage(Send, Recv):
         if len(userkey) != 16:
             raise RuntimeError("Invalid user key given")
 
-        pad_userkey = userkey
-        pad_userkey.extend(b'\x00' * 8)
+        pad_userkey = bytearray(userkey)
+        pad_userkey.extend(b'\x00' * 6)
         #    userkey.extend((22 - len(userkey)) * b'\x00')
         encrypted_pair_key = crypt_data(userkey, cls.msgtype, remote_session_nonce, local_security_counter, card_key)
 
