@@ -13,7 +13,7 @@ from Crypto.Cipher import AES
 def _aes_encrypt(key, data):
     """ encrypt data with key using aes 128 ecb """
     mode = AES.MODE_ECB
-    encryptor = AES.new(key, mode)
+    encryptor = AES.new(bytes(key), mode)
     return encryptor.encrypt(data)
 
 def _pad_array(data, step, minimum):
