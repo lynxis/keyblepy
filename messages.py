@@ -335,8 +335,8 @@ class PairingRequestMessage(Send, Recv):
             self.encrypted_pair_key.extend(b'\x00' * (22 - length))
 
     def encode(self):
-        head = pack('<BB', PairingRequestMessage.msgtype, self.userid)
-        tail = pack('<H', self.security_counter) + self.authentication
+        head = pack('>BB', PairingRequestMessage.msgtype, self.userid)
+        tail = pack('>H', self.security_counter) + self.authentication
         return head + self.encrypted_pair_key + tail
 
     @classmethod
@@ -347,11 +347,11 @@ class PairingRequestMessage(Send, Recv):
         if data[0] != cls.msgtype:
             raise InvalidData("Wrong msgtype")
 
-        head = calcsize('<BB')
+        head = calcsize('>BB')
         tail = head + 22
-        _msgtype, userid = unpack_from('<BB', data)
+        _msgtype, userid = unpack_from('>BB', data)
         encrypted_pair_key = data[head:tail]
-        security_counter, = unpack_from('<H', data, tail)
+        security_counter, = unpack_from('>H', data, tail)
 
         tail += 2
         authentication = data[tail:tail+4]
