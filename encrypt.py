@@ -39,7 +39,7 @@ def xor_array(data, xor_data, xor_data_offset=0):
         xorred.append(data[i] ^ xor_data[(xor_data_offset + i) % len(xor_data)])
     return xorred
 
-def _crypt_data(message_data, message_type_id, session_open_nonce, security_counter, key):
+def crypt_data(message_data, message_type_id, session_open_nonce, security_counter, key):
     """ message_data does not contain the message_type_id """
     nonce = compute_nonce(message_type_id, session_open_nonce, security_counter)
     xor_data = bytearray()
@@ -86,11 +86,11 @@ def encrypt_message(message, remote_nonce, local_security_counter, user_key):
 
     padded_body = _pad_array(body, 15, 8)
 
-    crypt_data = _crypt_data(padded_body, msg_type_id, remote_nonce, local_security_counter, user_key)
+    _crypt_data = crypt_data(padded_body, msg_type_id, remote_nonce, local_security_counter, user_key)
     auth = compute_authentication_value(padded_body, msg_type_id, remote_nonce, local_security_counter, user_key)
 
     tmp = bytearray()
-    tmp.extend(crypt_data)
+    tmp.extend(_crypt_data)
     tmp.extend(pack('<H', local_security_counter))
     tmp.extend(auth)
 

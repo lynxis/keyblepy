@@ -353,7 +353,7 @@ class PairingRequestMessage(Send, Recv):
         # pad userkey
         if len(userkey) < 22:
             userkey.extend((22 - len(userkey)) * b'\x00')
-        encrypted_pair_key = encrypt_message(userkey, remote_session_nonce, local_security_counter, card_key)
+        encrypted_pair_key = crypt_data(userkey, self.msgtype, remote_session_nonce, local_security_counter, card_key)
 
         auth_data = bytearray()
         auth_data.append(userid)
