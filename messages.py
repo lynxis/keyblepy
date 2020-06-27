@@ -9,7 +9,7 @@ import logging
 
 from struct import pack, unpack_from, calcsize
 # local imports
-from encrypt import compute_authentication_value, encrypt_message
+from encrypt import compute_authentication_value, encrypt_message, crypt_data
 
 MESSAGE_FRAGMENT_ACK = 0x01
 MESSAGE_ANSWER_WITHOUT_SECURITY = 0x01
