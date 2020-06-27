@@ -161,6 +161,17 @@ class LowerLayer(object):
                 return
             raise
 
+        # FragmentAck?
+        # FIXME: hack
+        if fragment.status == 0x80 and fragment.payload[0] == 0x00:
+            if fragment.payload[1] == self._send_fragments[self._send_fragment_index][0]:
+                LOG.info("Received unknown FragmentAck")
+                return
+            else:
+                LOG.info("Received correct FragmentAck")
+            self.ev_ack_received()
+            return
+
         self.ev_received()
 
         self._recv_fragments += [data]
