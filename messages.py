@@ -159,14 +159,14 @@ class FragmentAck(Send, Recv):
         self.fragmentid = fragmentid
 
     def encode(self):
-        return pack('<BB', FragmentAck.msgtype, self.fragmentid)
+        return pack('>BB', FragmentAck.msgtype, self.fragmentid)
 
     @classmethod
     def decode(cls, data):
         if data[0] != FragmentAck.msgtype:
             raise InvalidData("Wrong msgtype")
 
-        _msgtype, fragmentid = unpack_from('<BB', data)
+        _msgtype, fragmentid = unpack_from('>BB', data)
         return cls(fragmentid)
 
 class AnswerWithoutSecurity(Send, Recv):
@@ -179,14 +179,14 @@ class AnswerWithoutSecurity(Send, Recv):
         self.answer = answer
 
     def encode(self):
-        return pack('<BB', FragmentAck.msgtype, self.answer)
+        return pack('>BB', FragmentAck.msgtype, self.answer)
 
     @classmethod
     def decode(cls, data):
         if data[0] != AnswerWithoutSecurity.msgtype:
             raise InvalidData("Wrong msgtype")
 
-        _msgtype, answer = unpack_from('<BB', data)
+        _msgtype, answer = unpack_from('>BB', data)
         return cls(answer)
 
 class AnswerWithSecurity(Send, Recv):
@@ -199,14 +199,14 @@ class AnswerWithSecurity(Send, Recv):
         self.answer = answer
 
     def encode(self):
-        return pack('<BB', FragmentAck.msgtype, self.answer)
+        return pack('>BB', FragmentAck.msgtype, self.answer)
 
     @classmethod
     def decode(cls, data):
         if data[0] != AnswerWithoutSecurity.msgtype:
             raise InvalidData("Wrong msgtype")
 
-        _msgtype, answer = unpack_from('<BB', data)
+        _msgtype, answer = unpack_from('>BB', data)
         return cls(answer)
 
 class ConnectionInfoMessage(Send, Recv):
@@ -219,7 +219,7 @@ class ConnectionInfoMessage(Send, Recv):
 
     def encode(self):
         return pack(
-            '<BBQBBB',
+            '>BBQBBB',
             ConnectionInfoMessage.msgtype,
             self.userid,
             self.remote_session_nonce,
@@ -235,7 +235,7 @@ class ConnectionInfoMessage(Send, Recv):
         if data[0] != ConnectionInfoMessage.msgtype:
             raise InvalidData("Wrong msgtype")
 
-        _msgtype, userid, remote_session_nonce, _unknown, bootloader, application = unpack_from('<BBQBBB', data)
+        _msgtype, userid, remote_session_nonce, _unknown, bootloader, application = unpack_from('>BBQBBB', data)
         return cls(userid, remote_session_nonce, bootloader, application)
 
 class ConnectionRequestMessage(Send, Recv):
@@ -249,7 +249,7 @@ class ConnectionRequestMessage(Send, Recv):
     def encode(self):
         LOG.error("Encoding: '%s' '%s' '%s'", ConnectionRequestMessage.msgtype, self.userid, self.nonce)
         return pack(
-            '<BBQ',
+            '>BBQ',
             ConnectionRequestMessage.msgtype,
             self.userid,
             self.nonce)
@@ -262,7 +262,7 @@ class ConnectionRequestMessage(Send, Recv):
         if data[0] != cls.msgtype:
             raise InvalidData("Wrong msgtype")
 
-        _msgtype, userid, nonce = unpack_from('<BBQBB', data)
+        _msgtype, userid, nonce = unpack_from('>BBQBB', data)
         return cls(userid, nonce)
 
 class StatusRequestMessage(Send, Recv):
@@ -275,7 +275,7 @@ class StatusRequestMessage(Send, Recv):
 
     def encode(self):
         return pack(
-            '<BBQ',
+            '>BBQ',
             StatusRequestMessage.msgtype,
             self.userid,
             self.nonce)
@@ -288,7 +288,7 @@ class StatusRequestMessage(Send, Recv):
         if data[0] != cls.msgtype:
             raise InvalidData("Wrong msgtype")
 
-        _msgtype, userid, nonce = unpack_from('<BBQBB', data)
+        _msgtype, userid, nonce = unpack_from('>BBQBB', data)
         return cls(userid, nonce)
 
 class StatusInfoMessage(Send):
@@ -301,7 +301,7 @@ class StatusInfoMessage(Send):
 
     def encode(self):
         return pack(
-            '<BBQ',
+            '>BBQ',
             StatusInfoMessage.msgtype,
             self.userid,
             self.nonce)
@@ -313,7 +313,7 @@ class StatusChangedMessage(Send):
 
     def encode(self):
         return pack(
-            '<B',
+            '>B',
             StatusChangedMessage.msgtype)
 
 class PairingRequestMessage(Send, Recv):

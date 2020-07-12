@@ -29,7 +29,7 @@ def _padding_length(length, step, minimum):
     return math.ceil((length - minimum) / step) * step + minimum
 
 def compute_nonce(message_type_id, session_open_nonce, security_counter):
-    nonce = pack('<BQBBH', message_type_id, session_open_nonce, 0, 0, security_counter)
+    nonce = pack('>BQBBH', message_type_id, session_open_nonce, 0, 0, security_counter)
     return nonce
 
 def xor_array(data, xor_data, xor_data_offset=0):
