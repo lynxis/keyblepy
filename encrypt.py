@@ -147,3 +147,26 @@ def test_crypt_data():
     local_security_counter = 1
     _crypt_data = crypt_data(data, msg_type_id, remote_nonce, local_security_counter, key)
     assert(len(_crypt_data) == len(data))
+
+def test_compute_auth():
+    # nodejs test data
+    # > r.utils.compute_authentication_value([1,2,3], 23, [1,2,3,4,5,6,7,8], 1, [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16])
+    # [ 219, 223, 137, 233 ]
+    nonce, = unpack('>Q', bytearray([1,2,3,4,5,6,7,8]))
+    ret = compute_authentication_value(
+            bytearray([1,2,3]),
+            23,
+            nonce,
+            1,
+            bytearray([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]))
+
+    assert ret == bytearray([ 219, 223, 137, 233 ])
+
+def test_compute_nonce():
+    # nodejs test data
+    # > r.utils.compute_nonce(23, [1,2,3,4,5,6,7,8], 42)
+    # [ 23, 1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 0, 42 ]
+    nonce, = unpack('>Q', bytearray([1,2,3,4,5,6,7,8]))
+    ret = compute_nonce(23, nonce, 42)
+    assert ret == bytearray([23, 1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 0, 42])
+
