@@ -25,6 +25,10 @@ MESSAGE_COMMAND = 0x87
 MESSAGE_USER_INFO = 0x8f
 MESSAGE_USER_NAME_SET = 0x90
 
+COMMAND_LOCK = 0
+COMMAND_UNLOCK = 1
+COMMAND_OPEN = 2
+
 LOG = logging.getLogger("messages")
 
 def encode_fragment(message):
@@ -382,6 +386,29 @@ class PairingRequestMessage(Send, Recv):
 
         return cls(userid, encrypted_pair_key, local_security_counter, authentication)
 
+class CommandMessage(Send):
+    msgtype = 0x87
+    def __init__(self, command):
+        # uint8
+        self.command = command
+
+    def encode(self):
+        return pack(
+            '>BB',
+            CommandMessage.msgtype,
+            self.command)
+
+    @classmethod
+    def decode(cls, data):
+        if len(data) < 2:
+            raise InvalidData("Input to short")
+
+        if data[0] != cls.msgtype:
+            raise InvalidData("Wrong msgtype")
+
+        _msgtype, command = unpack_from('>BB', data)
+        return cls(command)
+
 MESSAGES = {
         0x00: FragmentAck,
         0x01: AnswerWithoutSecurity,
@@ -392,6 +419,7 @@ MESSAGES = {
         0x81: AnswerWithSecurity,
         0x82: StatusRequestMessage,
         0x83: StatusInfoMessage,
+        0x87: CommandMessage,
 }
 
 def test_pairing_request():
