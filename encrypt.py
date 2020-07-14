@@ -48,7 +48,7 @@ def crypt_data(message_data, message_type_id, session_open_nonce, security_count
         tmp = bytearray()
         tmp.append(0x01)
         tmp.extend(nonce)
-        tmp.extend(pack('<H', index + 1))
+        tmp.extend(pack('>H', index + 1))
         tmp = _pad_array(tmp, 16, 0)
         xor_data.extend(_aes_encrypt(key, tmp))
     return xor_array(message_data, xor_data)
@@ -63,7 +63,7 @@ def compute_authentication_value(message_data, message_type_id, session_nonce, s
     tmp = bytearray()
     tmp.append(0x09)
     tmp.extend(nonce)
-    tmp.extend(pack('<H', padded_length))
+    tmp.extend(pack('>H', padded_length))
     encrypted_xor_data = _aes_encrypt(user_key, tmp)
 
     for i in range(0, padded_length, 16):
@@ -75,7 +75,7 @@ def compute_authentication_value(message_data, message_type_id, session_nonce, s
     tmp.extend(nonce)
     tmp.append(0x00)
     tmp.append(0x00)
-    tmp.extend(pack('<H', padded_length))
+    tmp.extend(pack('>H', padded_length))
     tmp = _pad_array(tmp, 16, 0)
     return xor_array(
         encrypted_xor_data[0:4],
@@ -94,7 +94,7 @@ def encrypt_message(message, remote_nonce, local_security_counter, user_key):
 
     tmp = bytearray()
     tmp.extend(_crypt_data)
-    tmp.extend(pack('<H', local_security_counter))
+    tmp.extend(pack('>H', local_security_counter))
     tmp.extend(auth)
 
     return tmp
