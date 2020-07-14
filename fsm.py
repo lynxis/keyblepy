@@ -62,7 +62,7 @@ class Device(object):
                                       initial='disconnected')
 
         self.nonce = int(random.getrandbits(64))
-        self.nonce_byte = bytearray(pack('<Q', self.nonce))
+        self.nonce_byte = bytearray(pack('>Q', self.nonce))
 
         self.remote_nonce = None
         self.remote_nonce_byte = None
@@ -85,7 +85,7 @@ class Device(object):
         if isinstance(message, ConnectionInfoMessage):
             LOG.info("Receive ConnectionInfoMessage")
             self.remote_nonce = message.remote_session_nonce
-            self.remote_nonce_byte = bytearray(pack('<Q', self.remote_nonce))
+            self.remote_nonce_byte = bytearray(pack('>Q', self.remote_nonce))
             self.connection_info = message
             if self.userid == 0xff:
                 LOG.info("Using new Userid %d" % message.userid)
