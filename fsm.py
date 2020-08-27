@@ -90,6 +90,10 @@ class Device(object):
         self.msg_type = None
         self.msg_pdu = None
 
+    def _on_error(self, message):
+        """ entrypoint when received an error from the lower layer """
+        LOG.info("Receive error from lower layer %s", message)
+
     def _on_receive(self, message):
         """ entrypoint when received a message from the lower layer """
         LOG.info("Receive message %s", message)
@@ -118,6 +122,7 @@ class Device(object):
 
         self.ll = LowerLayer(self.mac)
         self.ll.set_on_receive(self._on_receive)
+        self.ll.set_on_error(self._on_error)
         self.ll.connect()
         self.ev_connected()
 
