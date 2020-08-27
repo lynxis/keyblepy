@@ -3,15 +3,15 @@
 ## Current status
 
 
-Features                           | supported | tested 
+Features                           | supported          | tested
 ---|---|---
-Decrypt Message                    |           |  
-Encrypt Message                    | :heavy_check_mark:         | :heavy_check_mark:
-Timeout on operation               | partial   |  
-discover BLE devices               | x         |  
-Registering new user               | X         | X
-Open/Unlock/Lock                   | X         | X
-Status                             |           |  
+Decrypt Message                    |                    |
+Encrypt Message                    | :heavy_check_mark: | :heavy_check_mark:
+Timeout on operation               | partial            |
+discover BLE devices               | :heavy_check_mark: | :heavy_check_mark:
+Registering new user               | :heavy_check_mark: | :heavy_check_mark:
+Open/Unlock/Lock                   | :heavy_check_mark: | :heavy_check_mark:
+Status                             |                    |
 
 ## wireshark dissector
 
