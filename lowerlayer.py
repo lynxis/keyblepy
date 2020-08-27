@@ -296,11 +296,14 @@ class LowerLayer(object):
                 if not self._control.empty():
                     control, payload = self._control.get()
                     if control == MSG_CONNECT:
+                        LOG.debug("Connecting to BLE")
                         self._connect()
                     elif control == MSG_DISCONNECT:
+                        LOG.debug("Disconnecting to BLE")
                         self.ev_disconnect()
                         break
                     elif control == MSG_SEND:
+                        LOG.debug("Sending message to BLE")
                         self._send_messages.put(payload)
                         self.ev_enqueue_message()
                 if self.state != "disconnected":
