@@ -55,6 +55,22 @@ def ui_pair(device, userid, userkey, cardkey):
     device = Device(device, userid=userid)
     device.pair(_userkey, _cardkey)
 
+def ui_command(device, userid, userkey, command):
+    _userkey = binascii.unhexlify(userkey)
+    if len(_userkey) != 16:
+        raise RuntimeError("Userkey is too short or too long. Expecting 16 byte encode as hex (32 characters)")
+
+    device = Device(device, userid=userid, userkey=_userkey)
+
+    if command == "open":
+        device.open()
+    elif command == "unlock":
+        device.unlock()
+    elif command == "lock":
+        device.lock()
+
+    print("device %s" % str(command))
+
 def ui_status(device, userid, userkey):
     device = Device(device, userid=userid, userkey=userkey)
     status = device.status()
@@ -80,6 +96,12 @@ def main():
         ui_scan()
     if args.status:
         ui_status(args.device, args.userid, args.userkey)
+    if args.open:
+        ui_command(args.device, args.userid, args.userkey, "open")
+    if args.lock:
+        ui_command(args.device, args.userid, args.userkey, "lock")
+    if args.unlock:
+        ui_command(args.device, args.userid, args.userkey, "unlock")
     if args.discover:
         ui_discover(args.device)
     if args.register:

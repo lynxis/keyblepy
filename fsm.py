@@ -7,6 +7,7 @@ import logging
 import threading
 from exceptions import *
 from messages import *
+from encrypt import encrypt_message
 import random
 from lowerlayer import LowerLayer
 from bluepy.btle import Peripheral, BTLEException
@@ -16,6 +17,10 @@ from transitions.extensions.states import add_state_features, Timeout
 LOCK_SERVICE = '58e06900-15d8-11e6-b737-0002a5d5c51b'
 LOCK_SEND_CHAR = '3141dd40-15db-11e6-a24b-0002a5d5c51b'
 LOCK_RECV_CHAR = '359d4820-15db-11e6-82bd-0002a5d5c51b'
+
+COMMAND_LOCK = 0
+COMMAND_UNLOCK = 1
+COMMAND_OPEN = 2
 
 LOG = logging.getLogger("fsm")
 
@@ -126,6 +131,16 @@ class Device(object):
     def status_on_recv(self):
         pass
 
+    def encrypt_message(self, message):
+        """ :param message a Message object
+        """
+        pdu = encrypt_message(message, self.remote_nonce, self.security_counter, self.userkey)
+        self.security_counter += 1
+        return pdu
+
+    def decrypt_message(self, data):
+        self.remote_security_counter = 1
+
     # interface
     def pair(self, userkey, cardkey):
         """ :param user_key as bytearray (128 bit / 16 byte)
@@ -141,13 +156,17 @@ class Device(object):
         _userkey = bytearray(userkey)
         _cardkey = bytearray(cardkey)
         self.userkey = _userkey
-        pkg = PairingRequestMessage.create(
+        pdu = PairingRequestMessage.create(
             self.userid,
             _userkey,
             self.remote_nonce,
             self.security_counter,
-            _cardkey)
-        self.ll.send(pkg)
+            _cardkey).encode()
+        self.ll.send(pdu)
+        return self.wait_for_answer()
+
+    def wait_for_answer(self):
+        return True
 
     def discover(self):
         """ return bootloader and application info """
@@ -169,8 +188,38 @@ class Device(object):
 
         if self.state == 'disconnected':
             self._connect()
+            self.ready.wait()
 
         return "No Status Yet"
+
+    def open(self):
+        """ open it ! """
+        if self.state == 'disconnected':
+            self._connect()
+            self.ready.wait()
+
+        message = CommandMessage(COMMAND_OPEN)
+        pdu = self.encrypt_message(message)
+        from pprint import pprint
+        pprint(pdu)
+        assert pdu
+        self.ll.send(pdu)
+
+    def unlock(self):
+        if self.state == 'disconnected':
+            self._connect()
+            self.ready.wait()
+
+        pdu = CommandMessage(COMMAND_UNLOCK).encode()
+        self.ll.send(pdu)
+
+    def lock(self):
+        if self.state == 'disconnected':
+            self._connect()
+            self.ready.wait()
+
+        pdu = CommandMessage(COMMAND_LOCK).encode()
+        self.ll.send(pdu)
 
     def register(self):
         """ Register a new user to the evlock. It requires the QR code. """
