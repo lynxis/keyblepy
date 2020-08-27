@@ -93,6 +93,7 @@ def encrypt_message(message, remote_nonce, local_security_counter, user_key):
     auth = compute_authentication_value(padded_body, msg_type_id, remote_nonce, local_security_counter, user_key)
 
     tmp = bytearray()
+    tmp.append(msg_type_id)
     tmp.extend(_crypt_data)
     tmp.extend(pack('>H', local_security_counter))
     tmp.extend(auth)
