@@ -230,7 +230,7 @@ class LowerLayer(object):
         if not self._send_fragments:
             LOG.debug("OnSend: No fragment, try generating fragments")
             if not self._send_messages.empty():
-                self._send_fragments = encode_fragment(self._send_messages.get().encode())
+                self._send_fragments = encode_fragment(self._send_messages.get())
                 self._send_fragment_index = -1
                 LOG.debug("OnSend: Encoded %d fragments", len(self._send_fragments))
             else:

@@ -110,10 +110,10 @@ class Device(object):
 
     def on_enter_connected(self):
         # if userid given, go to the next state
-        self.ll.send(ConnectionRequestMessage(self.userid, self.nonce))
+        self.ll.send(ConnectionRequestMessage(self.userid, self.nonce).encode())
 
     def on_enter_authenticate(self):
-        # self.ll.send(Authenticate(self.userid, self.nonce))
+        # self.ll.send(Authenticate(self.userid, self.nonce).encode())
         pass
 
     def on_enter_exchanged_nonce(self):
