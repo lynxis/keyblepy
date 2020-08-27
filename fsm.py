@@ -84,6 +84,12 @@ class Device(object):
         self.ready = threading.Event()
         self.ready.clear()
 
+        # wait for a message
+        self.msg = threading.Event()
+        self.msg.clear()
+        self.msg_type = None
+        self.msg_pdu = None
+
     def _on_receive(self, message):
         """ entrypoint when received a message from the lower layer """
         LOG.info("Receive message %s", message)
@@ -100,9 +106,11 @@ class Device(object):
             pass
         elif isinstance(message, AnswerWithoutSecurity):
             pass
+        elif isinstance(message, self.msg_type):
+            self.msg_pdu = message
+            self.msg.set()
         else:
             LOG.info("Unknown message %s", message)
-
 
     def _connect(self):
         if self.state != 'disconnected':
@@ -163,10 +171,14 @@ class Device(object):
             self.security_counter,
             _cardkey).encode()
         self.ll.send(pdu)
-        return self.wait_for_answer()
-
-    def wait_for_answer(self):
         return True
+
+    def wait_for(self, msg_type):
+        self.msg_type = msg_type
+        self.msg.clear()
+
+    def wait(self, timeout=None):
+        self.msg.wait(timeout)
 
     def discover(self):
         """ return bootloader and application info """
