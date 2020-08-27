@@ -54,6 +54,7 @@ def crypt_data(message_data, message_type_id, session_open_nonce, security_count
     return xor_array(message_data, xor_data)
 
 def compute_authentication_value(message_data, message_type_id, session_nonce, security_counter, user_key):
+    """ an auth is 4 byte long """
     nonce = compute_nonce(message_type_id, session_nonce, security_counter)
     length = len(message_data)
 
