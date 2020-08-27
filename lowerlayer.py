@@ -291,21 +291,24 @@ class LowerLayer(object):
 
     def work(self):
         """ runs in a seperate thread """
-        while self._running:
-            if not self._control.empty():
-                control, payload = self._control.get()
-                if control == MSG_CONNECT:
-                    self._connect()
-                elif control == MSG_DISCONNECT:
-                    self.ev_disconnect()
-                    break
-                elif control == MSG_SEND:
-                    self._send_messages.put(payload)
-                    self.ev_enqueue_message()
-            if self.state != "disconnected":
-                self._ble_node.waitForNotifications(self.timeout)
-            else:
-                time.sleep(0.1)
+        try:
+            while self._running:
+                if not self._control.empty():
+                    control, payload = self._control.get()
+                    if control == MSG_CONNECT:
+                        self._connect()
+                    elif control == MSG_DISCONNECT:
+                        self.ev_disconnect()
+                        break
+                    elif control == MSG_SEND:
+                        self._send_messages.put(payload)
+                        self.ev_enqueue_message()
+                if self.state != "disconnected":
+                    self._ble_node.waitForNotifications(self.timeout)
+                else:
+                    time.sleep(0.1)
+        except Exception as e:
+            self._error("Exception occured %s" % e)
 
     # user api functions
     def disconnect(self):
