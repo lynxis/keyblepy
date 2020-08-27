@@ -90,7 +90,7 @@ def main():
     parser.add_argument('--register', dest='register', action='store_true', help='Register a new user. Require --qrdata, optional --user-name')
     parser.add_argument('--user-name', dest='username', help='The administrator will see this name when listing all users')
     parser.add_argument('--qrdata', dest='qrdata', help='The QR Code as data. This contains the mac,cardkey,serial.')
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(format="'%(asctime)-15s %(message)s'", level=logging.DEBUG)
     args = parser.parse_args()
     if args.scan:
         ui_scan()
