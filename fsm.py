@@ -212,9 +212,6 @@ class Device(object):
 
         message = CommandMessage(COMMAND_OPEN)
         pdu = self.encrypt_message(message)
-        from pprint import pprint
-        pprint(pdu)
-        assert pdu
         self.ll.send(pdu)
 
     def unlock(self):
