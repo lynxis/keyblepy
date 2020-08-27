@@ -6,7 +6,7 @@
 Features                           | supported | tested 
 ---|---|---
 Decrypt Message                    |           |  
-Encrypt Message                    | x         | x
+Encrypt Message                    | :heavy_check_mark:         | :heavy_check_mark:
 Timeout on operation               | partial   |  
 discover BLE devices               | x         |  
 Registering new user               | X         | X
