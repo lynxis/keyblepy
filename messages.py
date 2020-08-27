@@ -271,44 +271,73 @@ class ConnectionRequestMessage(Send, Recv):
 
 class StatusRequestMessage(Send, Recv):
     msgtype = 0x82
-    def __init__(self, userid, nonce):
-        # uint8
-        self.userid = userid
-        # uint64
-        self.nonce = nonce
+    packformat = '>BBBBBBB'
+
+    def __init__(self, date):
+        self.date = date
 
     def encode(self):
+        # 6 bytes: 1 byte each
+        # -> (year - 2000)
+        # -> (month + 1)
+        # -> day
+        # -> hour
+        # -> minutes
+        # -> seconds
+        print(self.date)
+        print(type(self.date))
         return pack(
-            '>BBQ',
+            StatusRequestMessage.packformat,
             StatusRequestMessage.msgtype,
-            self.userid,
-            self.nonce)
+            self.date.year - 2000,
+            self.date.month + 1,
+            self.date.day,
+            self.date.hour,
+            self.date.minute,
+            self.date.second)
 
     @classmethod
     def decode(cls, data):
-        if len(data) != 15:
+        if len(data) < calcsize(cls.packformat):
             raise InvalidData("Input to short")
 
         if data[0] != cls.msgtype:
             raise InvalidData("Wrong msgtype")
 
-        _msgtype, userid, nonce = unpack_from('>BBQBB', data)
-        return cls(userid, nonce)
+        _msgtype, year, month, day, hours, minutes, second = unpack_from('>BBBBBBB', data)
+        date = datetime(year + 2000, month - 1, day, hours, minutes, second)
+
+        return cls(date)
 
 class StatusInfoMessage(Send):
+    """ messages sent to the Smart Lock, informing the current date/time, and requesting status information
+        date => datetime.datetime object
+    """
     msgtype = 0x83
-    def __init__(self, userid, nonce):
-        # uint8
-        self.userid = userid
-        # uint64
-        self.nonce = nonce
+    packformat = '>B'
+
+    def __init__(self, data):
+        """ 6 byte long barray """
+        self.data = data
 
     def encode(self):
+        # 6 bytes: 1 byte each
         return pack(
-            '>BBQ',
+            StatusInfoMessage.packformat,
             StatusInfoMessage.msgtype,
-            self.userid,
-            self.nonce)
+            ) + self.data
+
+    @classmethod
+    def decode(cls, data):
+        if len(data) < calcsize(cls.packformat) + 6:
+            raise InvalidData("Input to short")
+
+        if data[0] != cls.msgtype:
+            raise InvalidData("Wrong msgtype")
+
+        _msgtype, = unpack_from('>B', data)
+
+        return cls(data[1:7])
 
 class StatusChangedMessage(Send):
     msgtype = 0x05

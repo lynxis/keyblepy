@@ -72,7 +72,11 @@ def ui_command(device, userid, userkey, command):
     print("device %s" % str(command))
 
 def ui_status(device, userid, userkey):
-    device = Device(device, userid=userid, userkey=userkey)
+    _userkey = binascii.unhexlify(userkey)
+    if len(_userkey) != 16:
+        raise RuntimeError("Userkey is too short or too long. Expecting 16 byte encode as hex (32 characters)")
+
+    device = Device(device, userid=userid, userkey=_userkey)
     status = device.status()
     print("device status = %s" % str(status))
 

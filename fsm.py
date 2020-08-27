@@ -14,6 +14,8 @@ from bluepy.btle import Peripheral, BTLEException
 from transitions import Machine
 from transitions.extensions.states import add_state_features, Timeout
 
+from datetime import datetime
+
 LOCK_SERVICE = '58e06900-15d8-11e6-b737-0002a5d5c51b'
 LOCK_SEND_CHAR = '3141dd40-15db-11e6-a24b-0002a5d5c51b'
 LOCK_RECV_CHAR = '359d4820-15db-11e6-82bd-0002a5d5c51b'
@@ -152,7 +154,28 @@ class Device(object):
         return pdu
 
     def decrypt_message(self, data):
-        self.remote_security_counter = 1
+        """ a message is [1 byte id][x byte cryptdata][2 byte counter][4 byte auth] """
+        # check message_security_counter
+        # check authenticate_value
+
+        if len(data) < 7:
+            raise InvalidData("Message to short")
+
+        message_id = data[0:1]
+        message_counter = unpack('>H', data[-6, -4])
+        message_auth = unpack_from('>Q', data[-4:])
+        if message_counter <= self.remote_security_counter:
+            log.info("Invalid message counter")
+            return False
+
+        self.remote_security_counter = message_counter
+        pdu = crypt_data(data[1:-6], message_id, self.local_nonce, self.remote_security_counter, self.userkey)
+        computed_authentication_value = compute_authentication_value(pdu, message_id, self.local_nonce, self.remote_security_counter, self.userkey)
+        if compute_authentication_value != message_auth:
+            log.info("Invalid message auth")
+            return False
+
+        return pdu
 
     # interface
     def pair(self, userkey, cardkey):
@@ -199,18 +222,34 @@ class Device(object):
     def disconnect(self):
         self.ll.disconnect()
 
-    def status(self):
+    def status(self, timeout=10.0):
         """ returns the status of the lock or raise an exception """
         self.require_autenticate = True
 
         if self.state == 'disconnected':
             self._connect()
-            self.ready.wait()
+
+        if not self.ready.wait(timeout):
+            LOG.warning("Failed to setup the connection")
+            return False
+
+        message = StatusRequestMessage(datetime.now())
+        pdu = self.encrypt_message(message)
+
+        self.wait_for(StatusInfoMessage)
+        self.ll.send(pdu)
+        if not self.wait(timeout):
+            self.disconnect()
+            return "failed to get the StatusInfoMessage"
+
+        info = self.decrypt(self.msg_pdu)
+        from pprint import pprint
+        pprint(info)
 
         return "No Status Yet"
 
     def open(self):
-        """ open it ! """
+        """ open it! """
         if self.state == 'disconnected':
             self._connect()
             self.ready.wait()
