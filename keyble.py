@@ -7,9 +7,19 @@ import argparse
 import binascii
 import logging
 import re
+import sys
+import os
+import traceback
 
 from bluepy.btle import Scanner, DefaultDelegate
 from fsm import Device
+
+# exit on any exception
+def global_exception_hook(ex_type, ex, trace):
+    traceback.print_exception(ex_type, ex, trace)
+    os._exit(1)
+
+sys.excepthook = global_exception_hook
 
 def filter_keyble(devices):
     """ return only keyble locks """
