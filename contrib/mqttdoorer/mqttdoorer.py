@@ -11,8 +11,13 @@ from config import keyblecmd, logging_config
 
 LOG = logging.getLogger("mqttdoorer")
 
+# until keyblepy doesnt support toggle, track the state locally
+LAST_STATE = None
+
 def keyble(action):
+    global LAST_STATE
     LOG.info("Calling for %s", action)
+    LAST_STATE = action
     cmd = keyblecmd.split()
     cmd += ['--%s' % action]
     rc = subprocess.run(cmd, check=False)
@@ -28,10 +33,18 @@ def unlock():
 def _open():
     keyble('open')
 
+def toggle():
+    LOG.info("toggle from %s", LAST_STATE)
+    if LAST_STATE == 'lock':
+        unlock()
+    else:
+        lock()
+
 ACTIONS = {
         'lock': lock,
         'unlock': unlock,
         'open': _open,
+        'toggle': toggle,
         }
 
 def on_connect(client, userdata, flags, rc):
