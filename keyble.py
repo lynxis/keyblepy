@@ -29,7 +29,7 @@ def scan():
 def ui_scan():
     devices = scan()
     if not devices:
-        print("Could not found any devices")
+        print("No devices found")
         return
 
     print("Found keyble devices")
