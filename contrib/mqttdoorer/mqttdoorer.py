@@ -12,6 +12,7 @@ from config import keyblecmd, logging_config
 LOG = logging.getLogger("mqttdoorer")
 
 def keyble(action):
+    LOG.info("Calling for %s", action)
     cmd = keyblecmd.split()
     cmd += ['--%s' % action]
     rc = subprocess.run(cmd, check=False)
@@ -57,7 +58,7 @@ if logging_config:
     configyaml = yaml.load(open(logging_config, 'r'))
     logging.config.dictConfig(configyaml)
 else:
-    logging.basicConfig(format="%(asctime)-15s %(levelname)-8s %(name)-22s %(message)s", level=logging.WARNING)
+    logging.basicConfig(format="%(asctime)-15s %(levelname)-8s %(name)-22s %(message)s", level=logging.INFO)
 
 client = mqtt.Client()
 client.on_connect = on_connect
