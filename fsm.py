@@ -248,7 +248,7 @@ class Device(object):
 
         return "No Status Yet"
 
-    def open(self):
+    def open(self, timeout=10.0):
         """ open it! """
         if self.state == 'disconnected':
             self._connect()
@@ -257,8 +257,13 @@ class Device(object):
         message = CommandMessage(COMMAND_OPEN)
         pdu = self.encrypt_message(message)
         self.ll.send(pdu)
+        if not self.wait(timeout):
+            self.disconnect()
+            return "failed to get the Command Open response"
 
-    def unlock(self):
+        return 'open'
+
+    def unlock(self, timeout=10.0):
         if self.state == 'disconnected':
             self._connect()
             self.ready.wait()
@@ -266,8 +271,13 @@ class Device(object):
         message = CommandMessage(COMMAND_UNLOCK)
         pdu = self.encrypt_message(message)
         self.ll.send(pdu)
+        if not self.wait(timeout):
+            self.disconnect()
+            return "failed to get the Command Unlock response"
 
-    def lock(self):
+        return 'unlock'
+
+    def lock(self, timeout=10.0):
         if self.state == 'disconnected':
             self._connect()
             self.ready.wait()
@@ -275,6 +285,11 @@ class Device(object):
         message = CommandMessage(COMMAND_LOCK)
         pdu = self.encrypt_message(message)
         self.ll.send(pdu)
+        if not self.wait(timeout):
+            self.disconnect()
+            return "failed to get the Command Lock response"
+
+        return 'lock'
 
     def register(self):
         """ Register a new user to the evlock. It requires the QR code. """
