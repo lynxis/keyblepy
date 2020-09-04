@@ -90,6 +90,8 @@ def ui_status(device, userid, userkey):
 
     device = Device(device, userid=userid, userkey=_userkey)
     status = device.status()
+    if not status:
+        raise RuntimeError("Can not get the status")
     print("device status = %s" % str(status))
 
 def set_timeout(timeout):
