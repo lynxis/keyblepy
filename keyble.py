@@ -9,6 +9,8 @@ import logging
 import re
 import sys
 import os
+import threading
+import time
 import traceback
 
 from bluepy.btle import Scanner, DefaultDelegate
@@ -90,6 +92,16 @@ def ui_status(device, userid, userkey):
     status = device.status()
     print("device status = %s" % str(status))
 
+def set_timeout(timeout):
+    """ exit after timeout seconds """
+
+    def _timeouter():
+        time.sleep(timeout)
+        print("Operation timed out! Exit 2", file=sys.stderr)
+        os._exit(2)
+    thr = threading.Thread(target=_timeouter)
+    thr.start()
+
 def main():
     parser = argparse.ArgumentParser(description='keybtle')
     parser.add_argument('--scan', dest='scan', action='store_true', help='Scan for KeyBLEs')
@@ -105,6 +117,7 @@ def main():
     parser.add_argument('--user-name', dest='username', help='The administrator will see this name when listing all users')
     parser.add_argument('--qrdata', dest='qrdata', help='The QR Code as data. This contains the mac,cardkey,serial.')
     parser.add_argument('--verbose', dest='verbose', action='store_true', help='Enable debug logging.')
+    parser.add_argument('--timeout', dest='timeout', help='Exit after x seconds even when the operation hasn\'t finished.', type=float)
 
     args = parser.parse_args()
     if args.verbose:
@@ -112,7 +125,8 @@ def main():
     else:
         logging.basicConfig(format="%(asctime)-15s %(levelname)-8s %(name)-22s %(message)s", level=logging.ERROR)
 
-
+    if args.timeout:
+        set_timeout(args.timeout)
     if args.scan:
         ui_scan()
     if args.status:
