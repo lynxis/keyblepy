@@ -263,7 +263,8 @@ class Device(object):
             self._connect()
             self.ready.wait()
 
-        pdu = CommandMessage(COMMAND_UNLOCK).encode()
+        message = CommandMessage(COMMAND_UNLOCK)
+        pdu = self.encrypt_message(message)
         self.ll.send(pdu)
 
     def lock(self):
@@ -271,7 +272,8 @@ class Device(object):
             self._connect()
             self.ready.wait()
 
-        pdu = CommandMessage(COMMAND_LOCK).encode()
+        message = CommandMessage(COMMAND_LOCK)
+        pdu = self.encrypt_message(message)
         self.ll.send(pdu)
 
     def register(self):
