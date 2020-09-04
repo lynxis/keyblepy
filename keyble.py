@@ -82,6 +82,7 @@ def ui_command(device, userid, userkey, command):
         device.lock()
 
     print("device %s" % str(command))
+    os._exit(0)
 
 def ui_status(device, userid, userkey):
     _userkey = binascii.unhexlify(userkey)
